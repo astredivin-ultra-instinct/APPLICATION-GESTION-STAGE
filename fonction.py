@@ -581,7 +581,25 @@ def get_all_stages(id_responsable):
         ]
     finally:
         session.close()
-
+        
+def get_all_etudiants(id_responsable):
+    session = Session()
+    try:
+        data = session.query(Etudiant).filter_by(id_responsable=id_responsable).all()
+        return [
+            {
+                "id_etudiant": e.id_etudiant,
+                "nom": e.nom,
+                "prenom": e.prenom,
+                "ine": e.ine,
+                "mail": e.mail,
+                "filiere": e.filiere,
+                "semestre": e.semestre
+            }
+            for e in data
+        ]
+    finally:
+        session.close()
 
 def delete_stage(id_responsable, id_stage):
     session = Session()
