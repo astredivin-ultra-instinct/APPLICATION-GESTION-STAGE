@@ -158,38 +158,6 @@ DOMAINS = ["gmail.com", "yahoo.com", "yahoo.fr"]
 def email_valide(email):
     return any(email.endswith("@" + d) for d in DOMAINS)
 
-
-"""import smtplib
-import os
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from threading import Thread
-
-def envoyer_mail_async(subject, recipient, body):
-    """
-   # Envoi mail via smtplib directement — pas de flask_mail en thread.
-   # Lit les credentials depuis les variables d'environnement Render.
-    """
-    MAIL_USERNAME = os.environ.get("MAIL_USERNAME")  # ton gmail
-    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")  # mot de passe app Google
-
-    def send():
-        try:
-            msg = MIMEMultipart()
-            msg["From"]    = MAIL_USERNAME
-            msg["To"]      = recipient
-            msg["Subject"] = subject
-            msg.attach(MIMEText(body, "plain", "utf-8"))
-
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                server.login(MAIL_USERNAME, MAIL_PASSWORD)
-                server.sendmail(MAIL_USERNAME, recipient, msg.as_string())
-                print(f"[MAIL OK] → {recipient}")
-        except Exception as e:
-            print(f"[MAIL ERREUR] {recipient} : {e}")
-
-    Thread(target=send, daemon=True).start()"""
-
 from flask import current_app
 from flask_mail import Message
 
