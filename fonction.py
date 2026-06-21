@@ -158,20 +158,37 @@ DOMAINS = ["gmail.com", "yahoo.com", "yahoo.fr"]
 def email_valide(email):
     return any(email.endswith("@" + d) for d in DOMAINS)
 
+import requests
+import os
 from flask import current_app
-from flask_mail import Message
 
 def envoyer_mail_async(subject, recipient, body):
-    """Envoi synchrone — pas de thread, contexte Flask disponible."""
+    url = "https://api.brevo.com/v3/smtp/email"
+    
+    api_key = os.environ.get("BREVO_API_KEY")
+    
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
+    
+    payload = {
+        # Remplace par ton adresse mail expéditeur validée sur Brevo
+        "sender": {"name": "Gestion Stage", "email": "folmusalfred@gmail.com"},
+        "to": [{"email": recipient}],
+        "subject": subject,
+        "textContent": body
+    }
+    
     try:
-        mail = current_app.extensions["mail"]
-        msg  = Message(
-            subject    = subject,
-            recipients = [recipient],
-            body       = body
-        )
-        mail.send(msg)
-        print(f"[MAIL OK] → {recipient}")
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        
+        if response.status_code in [200, 201]:
+            print(f"[MAIL OK] → {recipient}")
+        else:
+            print(f"[MAIL ERREUR] {recipient} : Code {response.status_code} - {response.text}")
+            
     except Exception as e:
         print(f"[MAIL ERREUR] {recipient} : {e}")
 
