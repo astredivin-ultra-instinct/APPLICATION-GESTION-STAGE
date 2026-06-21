@@ -28,7 +28,7 @@ cloudinary.config(
 )
 
 
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+#os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 from route import api_bp
 
