@@ -84,7 +84,7 @@
    GET  /rapporteur/evaluation/{ine}
 ═══════════════════════════════════════════════════════════════ */
 
-const API = 'https://application-gestion-stage-4.onrender.com/api';
+const API = '/api';
 
 // ─── État global ─────────────────────────────────────────────
 let currentUser      = null;
