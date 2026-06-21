@@ -159,80 +159,132 @@ def email_valide(email):
     return any(email.endswith("@" + d) for d in DOMAINS)
 
 
-# =========================
-# ETUDIANT
-# =========================
 from flask import current_app
 from flask_mail import Message
 from threading import Thread
 from werkzeug.security import generate_password_hash
 import string, secrets
 
-# ==============================
-# 🔥 MAIL UNIVERSEL SAFE RENDER
-# ==============================
-def envoyer_mail_async(subject, recipient, body):
-    app = current_app._get_current_object()
-
+# ── Mail corrigé pour Render/gunicorn ─────────────────────────
+def envoyer_mail_async(app, subject, recipient, body):
+    """On passe app explicitement — current_app ne fonctionne pas en thread sur gunicorn."""
     def send():
         try:
             with app.app_context():
                 mail = app.extensions["mail"]
-                msg = Message(subject=subject, recipients=[recipient])
+                msg  = Message(subject=subject, recipients=[recipient])
                 msg.body = body
                 mail.send(msg)
+                print(f"[MAIL OK] → {recipient}")
         except Exception as e:
-            print("Erreur mail:", e)
-
+            print(f"[MAIL ERREUR] {recipient} : {e}")
     Thread(target=send, daemon=True).start()
 
 
-# ==============================
-# 👨‍🎓 ADD ETUDIANT
-# ==============================
-def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
+# ── ADD ETUDIANT ───────────────────────────────────────────────
+def add_etudiant(app, id_responsable, nom, prenom, ine, mail, filiere, semestre):
     session = Session()
     try:
+        # Vérifier INE
         if session.query(Etudiant).filter_by(ine=ine).first():
-            return False
+            return {"success": False, "message": f"Un étudiant avec l'INE {ine} existe déjà."}
+        # Vérifier mail
+        if session.query(Etudiant).filter_by(mail=mail).first():
+            return {"success": False, "message": f"L'email {mail} est déjà utilisé."}
 
-        ap = string.ascii_letters + string.digits
+        ap   = string.ascii_letters + string.digits
         temp = ''.join(secrets.choice(ap) for _ in range(8))
-        password_e = generate_password_hash(temp)
 
         etudiant = Etudiant(
             ine=ine, nom=nom, prenom=prenom,
             mail=mail, filiere=filiere,
             semestre=semestre,
-            password=password_e,
+            password=generate_password_hash(temp),
             id_responsable=id_responsable
         )
-
         session.add(etudiant)
         session.commit()
 
         envoyer_mail_async(
+            app,
             "Création de votre compte - Gestion des Stages",
             mail,
-            f"""Camarade {prenom} {nom},
-
-Compte créé.
-
-INE: {ine}
-Mot de passe: {temp}
-Filière: {filiere}
-
-https://application-gestion-stage-5.onrender.com
-"""
+            f"""Camarade {prenom} {nom},\n\nCompte créé.\n\nINE: {ine}\nMot de passe: {temp}\nFilière: {filiere}\n\nhttps://application-gestion-stage-5.onrender.com"""
         )
-
-        return True
+        return {"success": True, "message": "Étudiant ajouté avec succès."}
 
     except Exception as e:
         session.rollback()
-        print(e)
-        return False
+        print(f"[add_etudiant ERROR] {e}")
+        return {"success": False, "message": str(e)}
+    finally:
+        session.close()
 
+
+# ── ADD SUPERVISEUR ────────────────────────────────────────────
+def add_superviseur(app, id_responsable, nom, prenom, mail):
+    session = Session()
+    try:
+        if session.query(Superviseur).filter_by(mail=mail).first():
+            return {"success": False, "message": f"L'email {mail} est déjà utilisé par un superviseur."}
+
+        ap   = string.ascii_letters + string.digits
+        temp = ''.join(secrets.choice(ap) for _ in range(8))
+
+        sup = Superviseur(
+            id_responsable=id_responsable,
+            nom=nom, prenom=prenom, mail=mail,
+            password=generate_password_hash(temp)
+        )
+        session.add(sup)
+        session.commit()
+
+        envoyer_mail_async(
+            app,
+            "Création compte superviseur",
+            mail,
+            f"""Bonjour {prenom} {nom},\n\nCompte superviseur créé.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
+        )
+        return {"success": True, "message": "Superviseur ajouté avec succès."}
+
+    except Exception as e:
+        session.rollback()
+        print(f"[add_superviseur ERROR] {e}")
+        return {"success": False, "message": str(e)}
+    finally:
+        session.close()
+
+
+# ── ADD RAPPORTEUR ─────────────────────────────────────────────
+def add_rapporteur(app, id_responsable, nom, prenom, mail):
+    session = Session()
+    try:
+        if session.query(Rapporteur).filter_by(mail=mail).first():
+            return {"success": False, "message": f"L'email {mail} est déjà utilisé par un rapporteur."}
+
+        ap   = string.ascii_letters + string.digits
+        temp = ''.join(secrets.choice(ap) for _ in range(8))
+
+        rap = Rapporteur(
+            id_responsable=id_responsable,
+            nom=nom, prenom=prenom, mail=mail,
+            password=generate_password_hash(temp)
+        )
+        session.add(rap)
+        session.commit()
+
+        envoyer_mail_async(
+            app,
+            "Création compte rapporteur",
+            mail,
+            f"""Bonjour {prenom} {nom},\n\nCompte rapporteur créé.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
+        )
+        return {"success": True, "message": "Rapporteur ajouté avec succès."}
+
+    except Exception as e:
+        session.rollback()
+        print(f"[add_rapporteur ERROR] {e}")
+        return {"success": False, "message": str(e)}
     finally:
         session.close()
 
@@ -284,53 +336,6 @@ https://application-gestion-stage-5.onrender.com
         session.close()
 
 
-# ==============================
-# 👨‍🏫 ADD SUPERVISEUR
-# ==============================
-def add_superviseur(id_responsable, nom, prenom, mail):
-    session = Session()
-    try:
-        if session.query(Superviseur).filter_by(mail=mail).first():
-            return False
-
-        ap = string.ascii_letters + string.digits
-        temp = ''.join(secrets.choice(ap) for _ in range(8))
-        password = generate_password_hash(temp)
-
-        sup = Superviseur(
-            id_responsable=id_responsable,
-            nom=nom,
-            prenom=prenom,
-            mail=mail,
-            password=password
-        )
-
-        session.add(sup)
-        session.commit()
-
-        envoyer_mail_async(
-            "Création compte superviseur",
-            mail,
-            f"""Bonjour {prenom} {nom},
-
-Compte superviseur créé.
-
-Mail: {mail}
-Mot de passe: {temp}
-
-https://application-gestion-stage-5.onrender.com
-"""
-        )
-
-        return True
-
-    except Exception as e:
-        session.rollback()
-        print(e)
-        return False
-
-    finally:
-        session.close()
 
 
 # ==============================
@@ -375,50 +380,6 @@ https://application-gestion-stage-5.onrender.com
         session.close()
 
 
-# ==============================
-# 👨‍🏫 ADD RAPPORTEUR
-# ==============================
-def add_rapporteur(id_responsable, nom, prenom, mail):
-    session = Session()
-    try:
-        ap = string.ascii_letters + string.digits
-        temp = ''.join(secrets.choice(ap) for _ in range(8))
-        password = generate_password_hash(temp)
-
-        rap = Rapporteur(
-            id_responsable=id_responsable,
-            nom=nom,
-            prenom=prenom,
-            mail=mail,
-            password=password
-        )
-
-        session.add(rap)
-        session.commit()
-
-        envoyer_mail_async(
-            "Création compte rapporteur",
-            mail,
-            f"""Bonjour {prenom} {nom},
-
-Compte rapporteur créé.
-
-Mail: {mail}
-Mot de passe: {temp}
-
-https://application-gestion-stage-5.onrender.com
-"""
-        )
-
-        return True
-
-    except Exception as e:
-        session.rollback()
-        print(e)
-        return False
-
-    finally:
-        session.close()
 
 
 # ==============================
