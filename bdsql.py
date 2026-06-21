@@ -17,7 +17,7 @@ port = os.environ.get("DB_PORT")
 db_name = os.environ.get("DB_NAME")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
 
 Session = sessionmaker(bind=engine)
 

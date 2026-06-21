@@ -234,14 +234,13 @@ Cordialement,
 L'administration."""
 
             mail_serveur = current_app.extensions['mail']
-            mail_serveur.send(msg)
-            session.close()
+            from threading import Thread
+            Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
             return jsonify({"success": True,"message":"Etudiant modifié avec success ces identifiants lui on été envoyer par mail"})
             
         except Exception as e:
             session.rollback()
             print(f"Erreur d'envoi de mail : {e}")
-            session.close()
             return False
         return {"success": True, "message": "Étudiant modifié"}
 
@@ -326,7 +325,8 @@ Cordialement,
 L'administration."""
 
                 mail_serveur = current_app.extensions['mail']
-                mail_serveur.send(msg)
+                from threading import Thread
+                Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
                 session.close()
                 return True
             
@@ -349,7 +349,8 @@ Cordialement,
 L'administration."""
 
                 mail_serveur = current_app.extensions['mail']
-                mail_serveur.send(msg)
+                from threading import Thread
+                Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
                 session.close()
                 return True
             
@@ -440,8 +441,8 @@ Cordialement,
 L'administration."""
 
                 mail_serveur = current_app.extensions['mail']
-                mail_serveur.send(msg)
-                session.close()
+                from threading import Thread
+                Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
                 return True
             
             except Exception as e:
@@ -462,8 +463,8 @@ Cordialement,
 L'administration."""
 
                 mail_serveur = current_app.extensions['mail']
-                mail_serveur.send(msg)
-                session.close()
+                from threading import Thread
+                Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
                 return True
             
             except Exception as e:
@@ -897,7 +898,8 @@ Cordialement,
 L'administration."""
 
             mail_serveur = current_app.extensions['mail']
-            mail_serveur.send(msg)
+            from threading import Thread
+            Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
             return {"success": True,"message":"Superviseur modifié avec success ces identifiants lui on été envoyer par mail"}
             
         except Exception as e:
@@ -933,14 +935,15 @@ Cordialement,
 L'administration."""
 
             mail_serveur = current_app.extensions['mail']
-            mail_serveur.send(msg)
-            session.close()
+            from threading import Thread
+            Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
+
             return jsonify({"success": True,"message":"Rapporteur modifié avec success ces identifiants lui on été envoyer par mail"})
             
         except Exception as e:
             session.rollback()
             print(f"Erreur d'envoi de mail : {e}")
-            session.close()
+        
             return False
         return {"success": True, "message": "Rapporteur modifié"}
     finally:
