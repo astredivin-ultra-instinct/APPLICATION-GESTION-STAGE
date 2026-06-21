@@ -159,7 +159,7 @@ def email_valide(email):
     return any(email.endswith("@" + d) for d in DOMAINS)
 
 
-import smtplib
+"""import smtplib
 import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -167,8 +167,8 @@ from threading import Thread
 
 def envoyer_mail_async(subject, recipient, body):
     """
-    Envoi mail via smtplib directement — pas de flask_mail en thread.
-    Lit les credentials depuis les variables d'environnement Render.
+   # Envoi mail via smtplib directement — pas de flask_mail en thread.
+   # Lit les credentials depuis les variables d'environnement Render.
     """
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")  # ton gmail
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")  # mot de passe app Google
@@ -188,8 +188,24 @@ def envoyer_mail_async(subject, recipient, body):
         except Exception as e:
             print(f"[MAIL ERREUR] {recipient} : {e}")
 
-    Thread(target=send, daemon=True).start()
+    Thread(target=send, daemon=True).start()"""
 
+from flask import current_app
+from flask_mail import Message
+
+def envoyer_mail_async(subject, recipient, body):
+    """Envoi synchrone — pas de thread, contexte Flask disponible."""
+    try:
+        mail = current_app.extensions["mail"]
+        msg  = Message(
+            subject    = subject,
+            recipients = [recipient],
+            body       = body
+        )
+        mail.send(msg)
+        print(f"[MAIL OK] → {recipient}")
+    except Exception as e:
+        print(f"[MAIL ERREUR] {recipient} : {e}")
 
 # ── ADD ETUDIANT ───────────────────────────────────────────────
 def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
