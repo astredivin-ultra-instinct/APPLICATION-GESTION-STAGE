@@ -6,7 +6,7 @@ import os
 api_bp = Blueprint("api", __name__)
 
 # =========================
-# AUTH RESPONSABLE
+# AUTH RESPONSABLE https://github.com/astredivin-ultra-instinct/APPLICATION-GESTION-STAGE
 # =========================
 @api_bp.route("/responsable/connexion", methods=["POST"])
 def connexion_responsable():
