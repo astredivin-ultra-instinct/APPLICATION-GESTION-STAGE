@@ -132,7 +132,8 @@
       <!-- Étudiants -->
       <section id="s-etudiants" class="section">
         <div class="section-header flex-between">
-          <div><h2>Étudiants</h2><p class="section-sub">Faites le point des etudiants qui doivent aller en stage</p><p><mark>une fois l'étudiant enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</mark></p></div>
+          <div><h2>Étudiants</h2><p class="section-sub">Faites le point des etudiants qui doivent aller en stage</p>
+            <p>une fois l'étudiant enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</p></div>
           <button class="btn btn-primary" onclick="openModal('m-add-etudiant')">+ Ajouter</button>
         </div>
         <div class="table-wrap">
@@ -146,7 +147,8 @@
       <!-- Superviseurs -->
       <section id="s-superviseurs" class="section">
         <div class="section-header flex-between">
-          <div><h2>Superviseurs</h2><p class="section-sub">Encadrants d'entreprise</p><p><mark>une fois le superviseur enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</mark></p></div>
+          <div><h2>Superviseurs</h2><p class="section-sub">Encadrants d'entreprise</p>
+            <p>une fois le superviseur enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</p></div>
           <button class="btn btn-primary" onclick="openModal('m-add-superviseur')">+ Ajouter</button>
         </div>
         <div class="table-wrap">
@@ -160,7 +162,8 @@
       <!-- Rapporteurs -->
       <section id="s-rapporteurs" class="section">
         <div class="section-header flex-between">
-          <div><h2>Rapporteurs</h2><p class="section-sub">Membres du jury académique</p><p><mark>une fois le rapporteur enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</mark></p></div>
+          <div><h2>Rapporteurs</h2><p class="section-sub">Membres du jury académique</p>
+            <p>une fois le rapporteur enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</p></div>
           <button class="btn btn-primary" onclick="openModal('m-add-rapporteur')">+ Ajouter</button>
         </div>
         <div class="table-wrap">
@@ -319,9 +322,8 @@
   <!-- Ajouter / Modifier Stage -->
   <div id="m-add-stage" class="modal hidden">
     <div class="mh"><h3 id="titre-m-stage">Ajouter un stage</h3><button onclick="closeModal('m-add-stage')">✕</button></div>
-    <marquee style="color: red; font-weight: bold; text-decoration: underline;">
-  IMPORTANT! : Une fois un stage ajouté, vous ne pourrez plus le modifier </marquee>
-  <marquee style="color: red; font-weight: bold; text-decoration: underline;"> il faudra le supprimer pour y lié les bonnes informations</marquee>
+    <p>IMPORTANT! : Une fois un stage ajouté, vous ne pourrez plus le modifier </p>
+  <p> il faudra le supprimer pour y lié les bonnes informations</p>
     <p>un etudiant ne peut avoir qu'un seul stage</p>
 
     <div class="mb">
@@ -377,9 +379,8 @@
   <!-- Évaluation (rôle unique : son propre bloc) -->
   <div id="m-evaluer" class="modal hidden">
     <div class="mh"><h3 id="titre-m-eval">Évaluer l'étudiant</h3><button onclick="closeModal('m-evaluer')">✕</button></div>
-     <marquee style="color: red; font-weight: bold; text-decoration: underline;">
-  IMPORTANT! : Une fois l'Evaluation enregistré, </marquee>
-  <marquee style="color: red; font-weight: bold; text-decoration: underline;"> vous ne pourrez pas supprimer l'etudiant</marquee>
+     <p>IMPORTANT! : Une fois l'Evaluation enregistré, </p>
+  <p> vous ne pourrez pas supprimer l'etudiant</p>
     <div class="mb">
       <div id="err-m-eval" class="alert alert-error hidden"></div>
       <!-- Rapport à consulter -->
