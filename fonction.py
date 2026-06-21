@@ -885,7 +885,6 @@ def modifier_superviseur(id_responsable, id_superviseur, nom, prenom, mail):
         sup.nom = nom
         sup.prenom = prenom
         sup.mail = mail
-        session.commit()
         try:
             from flask_mail import Message,Mail
             from flask import current_app,Flask
@@ -899,14 +898,13 @@ L'administration."""
 
             mail_serveur = current_app.extensions['mail']
             mail_serveur.send(msg)
-            session.close()
-            return jsonify({"success": True,"message":"Superviseur modifié avec success ces identifiants lui on été envoyer par mail"})
+            return {"success": True,"message":"Superviseur modifié avec success ces identifiants lui on été envoyer par mail"}
             
         except Exception as e:
             session.rollback()
             print(f"Erreur d'envoi de mail : {e}")
-            session.close()
             return False
+        session.commit()
         return {"success": True, "message": "Superviseur modifié"}
     finally:
         session.close()
