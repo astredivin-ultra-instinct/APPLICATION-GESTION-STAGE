@@ -478,6 +478,21 @@ def get_all_superviseurs(id_responsable):
     finally:
         session.close()
 
+def delete_etudiant(id_responsable, ine):
+    session = Session()
+    try:
+        etu = session.query(Etudiant).filter_by(ine=ine, id_responsable=id_responsable).first()
+
+        if not etu:
+            return {"success": False, "message": "Introuvable"}
+
+        session.delete(etu)
+        session.commit()
+        return {"success": True}
+    finally:
+        session.close()
+
+
 
 def delete_superviseur(id_responsable, id_superviseur):
     session = Session()
@@ -581,7 +596,7 @@ def get_all_stages(id_responsable):
         ]
     finally:
         session.close()
-        
+
 def get_all_etudiants(id_responsable):
     session = Session()
     try:
