@@ -188,6 +188,7 @@ Voici vos identifiants de connexion :
 - INE : {ine}
 - Mot de passe: {temp}
 - Filière : {filiere}
+- Lien : <https://application-gestion-stage-4.onrender.com>
 
 Vous pourriez vous connecter et modifier votre mot de passe dès votre première connexion.
 
@@ -227,7 +228,8 @@ def modifier_etudiant(id_responsable, id_etudiant,ine, nom, prenom,mail, filiere
             msg.body = f"""Camarade {prenom} {nom},
 
 Connectez vous à votre compte avec le même mot de passe pour voir les modification.
-INE:{etu.ine}
+- INE:{etu.ine}
+- Lien : <https://application-gestion-stage-4.onrender.com>
 Cordialement,
 L'administration."""
 
@@ -315,6 +317,7 @@ Votre compte(Superviseur) sur la plateforme de Gestion des Stages a été créé
 Voici vos identifiants de connexion :
 - identifiant : {mail}
 - Mot de passe: {temp}
+- Lien : <https://application-gestion-stage-4.onrender.com>
 
 Vous êtes solliciter à superviser un/des etudiant(s) sur un/des stage(s), 
 Connecter vous à votre compte pour suivre son avancement.
@@ -341,7 +344,7 @@ L'administration."""
 
 Vous êtes solliciter de nouveau à superviser un etudiant,
 Connectez vous à votre compte pour suivre son avancement.
-
+- Lien : <https://application-gestion-stage-4.onrender.com>
 Cordialement,
 L'administration."""
 
@@ -428,6 +431,7 @@ Votre compte(Rapporteur) sur la plateforme de Gestion des Stages a été créé 
 Voici vos identifiants de connexion :
 - identifiant : {mail}
 - Mot de passe: {temp}
+- Lien : <https://application-gestion-stage-4.onrender.com>
 
 Vous serez solliciter à suivre un/des etudiant(s) pour un/des stage(s).
 Connecter vous pour suivre son/leur avancement.
@@ -453,7 +457,7 @@ L'administration."""
 
 Vous serez solliciter de nouveau à suivre un etudiant.
 Connecter vous à votre compte pour suivre son avancement.
-
+- Lien : <https://application-gestion-stage-4.onrender.com>
 Cordialement,
 L'administration."""
 
