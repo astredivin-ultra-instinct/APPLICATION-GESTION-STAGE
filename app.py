@@ -2,18 +2,13 @@ from flask import Flask, render_template
 from flask_mail import Mail
 from flask_cors import CORS
 import cloudinary,cloudinary.uploader
-import os
 from dotenv import load_dotenv
-
-
-
-
 app = Flask(__name__)
 CORS(app)
 load_dotenv()
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
-//app.config["UPLOAD_FOLDER"] = "uploads/rapports"
+"""app.config["UPLOAD_FOLDER"] = "uploads/rapports" """
 app.config['MAIL_SERVER'] = 'smtp-relay.brevo.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] =True

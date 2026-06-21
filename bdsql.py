@@ -4,18 +4,19 @@ declarative_base,
 relationship,
 sessionmaker
 )
-
+import os
+#postgresql://gestion_stages_db_user:F3S8aBaCtntNY3HdY3YiYQrEGHZQ70S0@dpg-d8rpv0svikkc738sqfig-a/gestion_stages_db
 from sqlalchemy.ext.hybrid import hybrid_property
+from dotenv import load_dotenv
 
-import urllib.parse
+load_dotenv()
+user = os.environ.get("DB_USER")
+password = os.environ.get("DB_PASSWORD")
+host = os.environ.get("DB_HOST")
+port = os.environ.get("DB_PORT")
+db_name = os.environ.get("DB_NAME")
 
-DB_USER = "postgres"
-DB_PASSWORD = "70794533"
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "postgres"
-
-DATABASE_URL = (f"postgresql+psycopg2://{DB_USER}:"f"{urllib.parse.quote_plus(DB_PASSWORD)}@"f"{DB_HOST}:{DB_PORT}/{DB_NAME}")
+DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{name}"
 
 engine = create_engine(DATABASE_URL)
 
