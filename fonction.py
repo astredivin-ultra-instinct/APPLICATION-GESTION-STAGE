@@ -159,25 +159,35 @@ def email_valide(email):
     return any(email.endswith("@" + d) for d in DOMAINS)
 
 
-from flask import current_app
-from flask_mail import Message
+import smtplib
+import os
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from threading import Thread
-from werkzeug.security import generate_password_hash
-import string, secrets
 
-# ── Mail corrigé pour Render/gunicorn ─────────────────────────
-def envoyer_mail_async(app, subject, recipient, body):
-    """On passe app explicitement — current_app ne fonctionne pas en thread sur gunicorn."""
+def envoyer_mail_async(subject, recipient, body):
+    """
+    Envoi mail via smtplib directement — pas de flask_mail en thread.
+    Lit les credentials depuis les variables d'environnement Render.
+    """
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME")  # ton gmail
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")  # mot de passe app Google
+
     def send():
         try:
-            with app.app_context():
-                mail = app.extensions["mail"]
-                msg  = Message(subject=subject, recipients=[recipient])
-                msg.body = body
-                mail.send(msg)
+            msg = MIMEMultipart()
+            msg["From"]    = MAIL_USERNAME
+            msg["To"]      = recipient
+            msg["Subject"] = subject
+            msg.attach(MIMEText(body, "plain", "utf-8"))
+
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                server.login(MAIL_USERNAME, MAIL_PASSWORD)
+                server.sendmail(MAIL_USERNAME, recipient, msg.as_string())
                 print(f"[MAIL OK] → {recipient}")
         except Exception as e:
             print(f"[MAIL ERREUR] {recipient} : {e}")
+
     Thread(target=send, daemon=True).start()
 
 
@@ -206,7 +216,6 @@ def add_etudiant(app, id_responsable, nom, prenom, ine, mail, filiere, semestre)
         session.commit()
 
         envoyer_mail_async(
-            app,
             "Création de votre compte - Gestion des Stages",
             mail,
             f"""Camarade {prenom} {nom},\n\nCompte créé.\n\nINE: {ine}\nMot de passe: {temp}\nFilière: {filiere}\n\nhttps://application-gestion-stage-5.onrender.com"""
@@ -240,7 +249,6 @@ def add_superviseur(app, id_responsable, nom, prenom, mail):
         session.commit()
 
         envoyer_mail_async(
-            app,
             "Création compte superviseur",
             mail,
             f"""Bonjour {prenom} {nom},\n\nCompte superviseur créé.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
@@ -274,7 +282,6 @@ def add_rapporteur(app, id_responsable, nom, prenom, mail):
         session.commit()
 
         envoyer_mail_async(
-            app,
             "Création compte rapporteur",
             mail,
             f"""Bonjour {prenom} {nom},\n\nCompte rapporteur créé.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""

@@ -49,24 +49,16 @@ def connexion_rapporteur():
 # =========================
 # ETUDIANTS
 # =========================
-from flask import current_app
-
-@api_bp.route('/etudiants/ajouter', methods=['POST'])
+@api_bp.route("/etudiants/ajouter", methods=["POST"])
 def ajouter_etudiant():
     data = request.json
-    app  = current_app._get_current_object()   # ← récupéré ICI dans le contexte Flask
-    result = add_etudiant(
-        app            = app,
-        id_responsable = data['id_responsable'],
-        nom            = data['nom'],
-        prenom         = data['prenom'],
-        ine            = data['ine'],
-        mail           = data['mail'],
-        filiere        = data['filiere'],
-        semestre       = int(data['semestre'])
-    )
-    return jsonify(result)
-    
+    valid =(add_etudiant(data["id_responsable"], data["nom"], data["prenom"], data["ine"], data["mail"], data["filiere"], data["semestre"]))
+    if valid:
+        return jsonify({"success": True,"message":"Etudiant ajouté avec success ces identifiants lui on été envoyer par mail"})
+    else:
+        return jsonify({"success": False,"message":"Erreur lors de l'envoi du mail"})
+
+
 @api_bp.route("/etudiants/liste/<int:id_responsable>", methods=["GET"])
 def liste_etudiants(id_responsable):
     return jsonify(get_all_etudiants(id_responsable))
@@ -81,18 +73,15 @@ def supprimer_etudiant():
 # =========================
 # SUPERVISEURS
 # =========================
-@api_bp.route('/superviseurs/ajouter', methods=['POST'])
+@api_bp.route("/superviseurs/ajouter", methods=["POST"])
 def ajouter_superviseur():
     data = request.json
-    app  = current_app._get_current_object()
-    result = add_superviseur(
-        app            = app,
-        id_responsable = data['id_responsable'],
-        nom            = data['nom'],
-        prenom         = data['prenom'],
-        mail           = data['mail']
-    )
-    return jsonify(result)
+    valid = (add_superviseur(data["id_responsable"], data["nom"], data["prenom"], data["mail"]))
+    if valid:
+        return jsonify({"success": True,"message":"Superviseur ajouté avec success ces identifiants lui on été envoyer par mail"})
+    else:
+        return jsonify({"success": False,"message":"Erreur lors de l'envoi du mail"})
+
 
 @api_bp.route("/superviseurs/liste/<int:id_responsable>", methods=["GET"])
 def liste_superviseurs(id_responsable):
@@ -108,18 +97,15 @@ def supprimer_superviseur():
 # =========================
 # RAPPORTEURS
 # =========================
-@api_bp.route('/rapporteurs/ajouter', methods=['POST'])
+@api_bp.route("/rapporteurs/ajouter", methods=["POST"])
 def ajouter_rapporteur():
     data = request.json
-    app  = current_app._get_current_object()
-    result = add_rapporteur(
-        app            = app,
-        id_responsable = data['id_responsable'],
-        nom            = data['nom'],
-        prenom         = data['prenom'],
-        mail           = data['mail']
-    )
-    return jsonify(result)
+    valid = (add_rapporteur(data["id_responsable"], data["nom"], data["prenom"], data["mail"]))
+    if valid:
+        return jsonify({"success": True,"message":"Rapporteur ajouté avec success ces identifiants lui on été envoyer par mail"})
+    else:
+        return jsonify({"success": False,"message":"Erreur lors de l'envoi du mail"})
+
 
 
 @api_bp.route("/rapporteurs/liste/<int:id_responsable>", methods=["GET"])
