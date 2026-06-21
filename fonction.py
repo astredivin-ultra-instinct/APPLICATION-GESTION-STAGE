@@ -192,7 +192,7 @@ def envoyer_mail_async(subject, recipient, body):
 
 
 # ── ADD ETUDIANT ───────────────────────────────────────────────
-def add_etudiant(app, id_responsable, nom, prenom, ine, mail, filiere, semestre):
+def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
     session = Session()
     try:
         # Vérifier INE
@@ -231,7 +231,7 @@ def add_etudiant(app, id_responsable, nom, prenom, ine, mail, filiere, semestre)
 
 
 # ── ADD SUPERVISEUR ────────────────────────────────────────────
-def add_superviseur(app, id_responsable, nom, prenom, mail):
+def add_superviseur(id_responsable, nom, prenom, mail):
     session = Session()
     try:
         if session.query(Superviseur).filter_by(mail=mail).first():
@@ -264,7 +264,7 @@ def add_superviseur(app, id_responsable, nom, prenom, mail):
 
 
 # ── ADD RAPPORTEUR ─────────────────────────────────────────────
-def add_rapporteur(app, id_responsable, nom, prenom, mail):
+def add_rapporteur(id_responsable, nom, prenom, mail):
     session = Session()
     try:
         if session.query(Rapporteur).filter_by(mail=mail).first():
