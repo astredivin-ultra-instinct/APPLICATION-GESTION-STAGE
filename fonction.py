@@ -162,206 +162,303 @@ def email_valide(email):
 # =========================
 # ETUDIANT
 # =========================
+from flask import current_app
+from flask_mail import Message
+from threading import Thread
+from werkzeug.security import generate_password_hash
+import string, secrets
+
+# ==============================
+# 🔥 MAIL UNIVERSEL SAFE RENDER
+# ==============================
+def envoyer_mail_async(subject, recipient, body):
+    app = current_app._get_current_object()
+
+    def send():
+        try:
+            with app.app_context():
+                mail = app.extensions["mail"]
+                msg = Message(subject=subject, recipients=[recipient])
+                msg.body = body
+                mail.send(msg)
+        except Exception as e:
+            print("Erreur mail:", e)
+
+    Thread(target=send, daemon=True).start()
+
+
+# ==============================
+# 👨‍🎓 ADD ETUDIANT
+# ==============================
 def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
-    if not email_valide(mail):
-        return {"success": False, "message": "Email non autorisé"}
     session = Session()
-    etudiant = session.query(Etudiant).filter_by(ine=ine).first()
-    if etudiant:
-        session.close()
-        return False
-
-    ap = string.ascii_letters + string.digits
-    temp = ''.join(secrets.choice(ap) for i in range(8) )
-    password_e = generate_password_hash(temp)
-    etudiant = Etudiant(ine=ine, nom=nom, prenom=prenom, mail=mail,filiere=filiere,semestre=semestre, password=password_e,id_responsable=id_responsable)
-    session.add(etudiant)
-    session.commit()
-    from flask_mail import Message,Mail
-    from flask import current_app,Flask
     try:
-        mail_instance = current_app.extensions['mail']
-        msg = Message("Création de votre compte - Gestion des Stages",recipients=[mail])
-        msg.body = f"""Camarade {prenom} {nom},
-Votre compte(Etudiant) sur la plateforme de Gestion des Stages a été créé par le responsable.
-Voici vos identifiants de connexion :
-- INE : {ine}
-- Mot de passe: {temp}
-- Filière : {filiere}
-- Lien : <https://application-gestion-stage-4.onrender.com>
+        if session.query(Etudiant).filter_by(ine=ine).first():
+            return False
 
-Vous pourriez vous connecter et modifier votre mot de passe dès votre première connexion.
+        ap = string.ascii_letters + string.digits
+        temp = ''.join(secrets.choice(ap) for _ in range(8))
+        password_e = generate_password_hash(temp)
 
-Cordialement,
-L'administration."""  
+        etudiant = Etudiant(
+            ine=ine, nom=nom, prenom=prenom,
+            mail=mail, filiere=filiere,
+            semestre=semestre,
+            password=password_e,
+            id_responsable=id_responsable
+        )
 
-        mail_instance.send(msg)
-        session.close()
+        session.add(etudiant)
+        session.commit()
+
+        envoyer_mail_async(
+            "Création de votre compte - Gestion des Stages",
+            mail,
+            f"""Camarade {prenom} {nom},
+
+Compte créé.
+
+INE: {ine}
+Mot de passe: {temp}
+Filière: {filiere}
+
+https://application-gestion-stage-5.onrender.com
+"""
+        )
+
         return True
-            
+
     except Exception as e:
         session.rollback()
-        print(f"Erreur d'envoi de mail : {e}")
+        print(e)
+        return False
+
     finally:
         session.close()
 
-def modifier_etudiant(id_responsable, id_etudiant,ine, nom, prenom,mail, filiere, semestre):
+
+# ==============================
+# ✏️ MODIFIER ETUDIANT
+# ==============================
+def modifier_etudiant(id_responsable, id_etudiant, ine, nom, prenom, mail, filiere, semestre):
     session = Session()
-    #resp = session.query(Responsable).filter_by(id_reponsable=id_responsable).first()
     try:
-        etu = session.query(Etudiant).filter_by(id_etudiant=id_etudiant, id_responsable=id_responsable).first()
+        etu = session.query(Etudiant).filter_by(
+            id_etudiant=id_etudiant,
+            id_responsable=id_responsable
+        ).first()
 
         if not etu:
-            return False #{"success": False, "message": "Introuvable"}
-        etu.id_responsable = id_responsable
+            return {"success": False}
+
         etu.ine = ine
         etu.nom = nom
         etu.prenom = prenom
         etu.mail = mail
         etu.filiere = filiere
         etu.semestre = semestre
+
         session.commit()
-        try:
-            from flask_mail import Message,Mail
-            from flask import current_app,Flask
-            msg = Message("Modification de votre Compte(Etudiant) - Gestion des Stages",recipients=[mail])
-            msg.body = f"""Camarade {prenom} {nom},
 
-Connectez vous à votre compte avec le même mot de passe pour voir les modification.
-- INE:{etu.ine}
-- Lien : <https://application-gestion-stage-4.onrender.com>
-Cordialement,
-L'administration."""
+        envoyer_mail_async(
+            "Modification compte étudiant",
+            mail,
+            f"""Camarade {prenom} {nom},
 
-            mail_serveur = current_app.extensions['mail']
-            from threading import Thread
-            Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
-            return jsonify({"success": True,"message":"Etudiant modifié avec success ces identifiants lui on été envoyer par mail"})
-            
-        except Exception as e:
-            session.rollback()
-            print(f"Erreur d'envoi de mail : {e}")
-            return False
-        return {"success": True, "message": "Étudiant modifié"}
+Votre compte a été modifié.
 
-    finally:
-        session.close()
+INE: {ine}
 
-def get_all_etudiants(id_responsable):
-    session = Session()
-    try:
-        data = session.query(Etudiant).filter_by(id_responsable=id_responsable).all()
-        return [
-            {
-                "id_etudiant": e.id_etudiant,
-                "nom": e.nom,
-                "prenom": e.prenom,
-                "ine": e.ine,
-                "mail": e.mail,
-                "filiere": e.filiere,
-                "semestre": e.semestre
-            }
-            for e in data
-        ]
-    finally:
-        session.close()
+https://application-gestion-stage-5.onrender.com
+"""
+        )
 
-
-def delete_etudiant(id_responsable, ine):
-    session = Session()
-    try:
-        etu = session.query(Etudiant).filter_by(ine=ine, id_responsable=id_responsable).first()
-
-        if not etu:
-            return {"success": False, "message": "Introuvable"}
-
-        session.delete(etu)
-        session.commit()
         return {"success": True}
+
+    except Exception as e:
+        session.rollback()
+        print(e)
+        return {"success": False}
+
     finally:
         session.close()
 
 
-# =========================
-# SUPERVISEUR
-# =========================
+# ==============================
+# 👨‍🏫 ADD SUPERVISEUR
+# ==============================
 def add_superviseur(id_responsable, nom, prenom, mail):
-    if not email_valide(mail):
-        return {"success": False, "message": "Email non autorisé"}
     session = Session()
     try:
-        responsable = session.query(Responsable).filter_by(id_responsable=id_responsable).first()
-        #etudiant = session.query(Etudiant).filter_by(ine=ine).first()
-
-        if not responsable:
-            session.close()
+        if session.query(Superviseur).filter_by(mail=mail).first():
             return False
-        superviseur = session.query(Superviseur).filter_by(mail=mail).first()
 
-        if superviseur is None:
-            ap = string.ascii_letters + string.digits
-            temp = ''.join(secrets.choice(ap) for i in range(8) )
-            password_s = generate_password_hash(temp)
-            superviseur = Superviseur(id_responsable=id_responsable,nom=nom, prenom=prenom, mail=mail, password=password_s)
-            session.add(superviseur)
-            session.commit()
+        ap = string.ascii_letters + string.digits
+        temp = ''.join(secrets.choice(ap) for _ in range(8))
+        password = generate_password_hash(temp)
 
-            try:
-                from flask_mail import Message,Mail
-                from flask import current_app,Flask
+        sup = Superviseur(
+            id_responsable=id_responsable,
+            nom=nom,
+            prenom=prenom,
+            mail=mail,
+            password=password
+        )
 
-                msg = Message("Création de votre compte - Gestion des Stages",recipients=[mail])
-                msg.body = f"""Camarade {prenom} {nom},
-Votre compte(Superviseur) sur la plateforme de Gestion des Stages a été créé par le responsable.
-Voici vos identifiants de connexion :
-- identifiant : {mail}
-- Mot de passe: {temp}
-- Lien : <https://application-gestion-stage-4.onrender.com>
+        session.add(sup)
+        session.commit()
 
-Vous êtes solliciter à superviser un/des etudiant(s) sur un/des stage(s), 
-Connecter vous à votre compte pour suivre son avancement.
+        envoyer_mail_async(
+            "Création compte superviseur",
+            mail,
+            f"""Bonjour {prenom} {nom},
 
-Cordialement,
-L'administration."""
+Compte superviseur créé.
 
-                mail_serveur = current_app.extensions['mail']
-                from threading import Thread
-                Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
-                session.close()
-                return True
-            
-            except Exception as e:
-                session.rollback()
-                print(f"Erreur d'envoi de mail : {e}")
-        else:
- 
-            try:
-                from flask_mail import Message,Mail
-                from flask import current_app,Flask
+Mail: {mail}
+Mot de passe: {temp}
 
-                msg = Message("Nouvelle etudiant à superviser - Gestion des Stages",recipients=[mail])
-                msg.body = f"""Camarade {superviseur.prenom} {superviseur.nom},
+https://application-gestion-stage-5.onrender.com
+"""
+        )
 
-Vous êtes solliciter de nouveau à superviser un etudiant,
-Connectez vous à votre compte pour suivre son avancement.
-- Lien : <https://application-gestion-stage-4.onrender.com>
-Cordialement,
-L'administration."""
-
-                mail_serveur = current_app.extensions['mail']
-                from threading import Thread
-                Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
-                session.close()
-                return True
-            
-            except Exception as e:
-                session.rollback()
-                print(f"Erreur d'envoi de mail : {e}")
         return True
 
     except Exception as e:
         session.rollback()
+        print(e)
         return False
+
+    finally:
+        session.close()
+
+
+# ==============================
+# ✏️ MODIFIER SUPERVISEUR
+# ==============================
+def modifier_superviseur(id_responsable, id_superviseur, nom, prenom, mail):
+    session = Session()
+    try:
+        sup = session.query(Superviseur).filter_by(
+            id_superviseur=id_superviseur,
+            id_responsable=id_responsable
+        ).first()
+
+        if not sup:
+            return {"success": False}
+
+        sup.nom = nom
+        sup.prenom = prenom
+        sup.mail = mail
+
+        session.commit()
+
+        envoyer_mail_async(
+            "Modification superviseur",
+            mail,
+            f"""Bonjour {prenom} {nom},
+
+Votre compte a été modifié.
+
+https://application-gestion-stage-5.onrender.com
+"""
+        )
+
+        return {"success": True}
+
+    except Exception as e:
+        session.rollback()
+        print(e)
+        return {"success": False}
+
+    finally:
+        session.close()
+
+
+# ==============================
+# 👨‍🏫 ADD RAPPORTEUR
+# ==============================
+def add_rapporteur(id_responsable, nom, prenom, mail):
+    session = Session()
+    try:
+        ap = string.ascii_letters + string.digits
+        temp = ''.join(secrets.choice(ap) for _ in range(8))
+        password = generate_password_hash(temp)
+
+        rap = Rapporteur(
+            id_responsable=id_responsable,
+            nom=nom,
+            prenom=prenom,
+            mail=mail,
+            password=password
+        )
+
+        session.add(rap)
+        session.commit()
+
+        envoyer_mail_async(
+            "Création compte rapporteur",
+            mail,
+            f"""Bonjour {prenom} {nom},
+
+Compte rapporteur créé.
+
+Mail: {mail}
+Mot de passe: {temp}
+
+https://application-gestion-stage-5.onrender.com
+"""
+        )
+
+        return True
+
+    except Exception as e:
+        session.rollback()
+        print(e)
+        return False
+
+    finally:
+        session.close()
+
+
+# ==============================
+# ✏️ MODIFIER RAPPORTEUR
+# ==============================
+def modifier_rapporteur(id_responsable, id_rapporteur, nom, prenom, mail):
+    session = Session()
+    try:
+        rap = session.query(Rapporteur).filter_by(
+            id_rapporteur=id_rapporteur,
+            id_responsable=id_responsable
+        ).first()
+
+        if not rap:
+            return {"success": False}
+
+        rap.nom = nom
+        rap.prenom = prenom
+        rap.mail = mail
+
+        session.commit()
+
+        envoyer_mail_async(
+            "Modification rapporteur",
+            mail,
+            f"""Bonjour {prenom} {nom},
+
+Votre compte a été modifié.
+
+https://application-gestion-stage-5.onrender.com
+"""
+        )
+
+        return {"success": True}
+
+    except Exception as e:
+        session.rollback()
+        print(e)
+        return {"success": False}
+
     finally:
         session.close()
 
@@ -397,86 +494,6 @@ def delete_superviseur(id_responsable, id_superviseur):
         session.close()
 
 
-# =========================
-# RAPPORTEUR
-# =========================
-def add_rapporteur(id_responsable, nom, prenom, mail):
-    if not email_valide(mail):
-        return {"success": False, "message": "Email non autorisé"}
-    session = Session() 
-    try:
-        responsable = session.query(Responsable).filter_by(id_responsable=id_responsable).first()
-        #etudiant = session.query(Etudiant).filter_by(ine=ine).first()
-
-        if not responsable:
-            session.close()
-            return False
-        
-        rapporteur = session.query(Rapporteur).filter_by(mail=mail).first()
-
-        if rapporteur is None:
-            ap = string.ascii_letters + string.digits
-            temp = ''.join(secrets.choice(ap) for i in range(8) )
-            password_r = generate_password_hash(temp)
-            rapporteur = Rapporteur(nom=nom, prenom=prenom,id_responsable=id_responsable, mail=mail, password=password_r)
-            session.add(rapporteur)
-            session.commit()
-
-            try:
-                from flask_mail import Message,Mail
-                from flask import current_app,Flask
-
-                msg = Message("Création de votre compte - Gestion des Stages",recipients=[mail])
-                msg.body = f"""Camarade {prenom} {nom},
-Votre compte(Rapporteur) sur la plateforme de Gestion des Stages a été créé par le responsable.
-Voici vos identifiants de connexion :
-- identifiant : {mail}
-- Mot de passe: {temp}
-- Lien : <https://application-gestion-stage-4.onrender.com>
-
-Vous serez solliciter à suivre un/des etudiant(s) pour un/des stage(s).
-Connecter vous pour suivre son/leur avancement.
-
-Cordialement,
-L'administration."""
-
-                mail_serveur = current_app.extensions['mail']
-                from threading import Thread
-                Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
-                return True
-            
-            except Exception as e:
-                session.rollback()
-                print(f"Erreur d'envoi de mail : {e}")
-        else:
-            try:
-                from flask_mail import Message,Mail
-                from flask import current_app,Flask
-
-                msg = Message("Nouvel etudiant à suivre - Gestion des Stages",recipients=[mail])
-                msg.body = f"""Camarade {rapporteur.prenom} {rapporteur.nom},
-
-Vous serez solliciter de nouveau à suivre un etudiant.
-Connecter vous à votre compte pour suivre son avancement.
-- Lien : <https://application-gestion-stage-4.onrender.com>
-Cordialement,
-L'administration."""
-
-                mail_serveur = current_app.extensions['mail']
-                from threading import Thread
-                Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
-                return True
-            
-            except Exception as e:
-                session.rollback()
-                print(f"Erreur d'envoi de mail : {e}")
-        return True
-
-    except Exception as e:
-        session.rollback()
-        return False
-    finally:
-        session.close()
 
 def get_all_rapporteurs(id_responsable):
     session = Session()
@@ -873,81 +890,6 @@ def get_evaluation_by_id_rapport(id_rapport):
     finally:
         session.close()
 
-
-
-def modifier_superviseur(id_responsable, id_superviseur, nom, prenom, mail):
-    session = Session()
-    try:
-        sup = session.query(Superviseur).filter_by(id_superviseur=id_superviseur, id_responsable=id_responsable).first()
-
-        if not sup:
-            return {"success": False, "message": "Introuvable"}
-
-        sup.nom = nom
-        sup.prenom = prenom
-        sup.mail = mail
-        try:
-            from flask_mail import Message,Mail
-            from flask import current_app,Flask
-            msg = Message("Modification de votre Compte(Superviseur) - Gestion des Stages",recipients=[mail])
-            msg.body = f"""Camarade {sup.prenom} {sup.nom},
-
-Connectez vous à votre compte avec le même mot de passe pour voir les modification.
-
-Cordialement,
-L'administration."""
-
-            mail_serveur = current_app.extensions['mail']
-            from threading import Thread
-            Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
-            return {"success": True,"message":"Superviseur modifié avec success ces identifiants lui on été envoyer par mail"}
-            
-        except Exception as e:
-            session.rollback()
-            print(f"Erreur d'envoi de mail : {e}")
-            return False
-        session.commit()
-        return {"success": True, "message": "Superviseur modifié"}
-    finally:
-        session.close()
-
-def modifier_rapporteur(id_responsable, id_rapporteur, nom, prenom, mail):
-    session = Session()
-    try:
-        rap = session.query(Rapporteur).filter_by(id_rapporteur=id_rapporteur, id_responsable=id_responsable).first()
-
-        if not rap:
-            return {"success": False, "message": "Introuvable"}
-
-        rap.nom = nom
-        rap.prenom = prenom
-        rap.mail = mail
-        session.commit()
-        try:
-            from flask_mail import Message,Mail
-            from flask import current_app,Flask
-            msg = Message("Modification de votre Compte(Rapporteur) - Gestion des Stages",recipients=[mail])
-            msg.body = f"""Camarade {rap.prenom} {rap.nom},
-
-Connectez vous à votre compte avec le même mot de passe pour voir les modification.
-
-Cordialement,
-L'administration."""
-
-            mail_serveur = current_app.extensions['mail']
-            from threading import Thread
-            Thread(target=mail_serveur.send, args=(msg,), daemon=True).start()
-
-            return jsonify({"success": True,"message":"Rapporteur modifié avec success ces identifiants lui on été envoyer par mail"})
-            
-        except Exception as e:
-            session.rollback()
-            print(f"Erreur d'envoi de mail : {e}")
-        
-            return False
-        return {"success": True, "message": "Rapporteur modifié"}
-    finally:
-        session.close()
 
 def valider_rapport(id_stage):
     session = Session()
