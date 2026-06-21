@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Gestion de Stage — Portail Académique</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ══════════════ PAGE LOGIN ══════════════ -->
+<div id="page-login" class="page active">
+  <div class="auth-split">
+    <div class="auth-brand">
+      <div class="brand-badge">GSA</div>
+      <h1>Gestion<br/>de Stage</h1>
+      <p class="brand-sub">Portail académique de suivi<br/>et d'évaluation des stages</p>
+      <div class="brand-pills">
+        <span>Responsable</span><span>Étudiant</span>
+        <span>Superviseur</span><span>Rapporteur</span>
+      </div>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-card">
+        <div class="logo-mobile"><div class="brand-badge sm">GSA</div><span>Gestion de Stage</span></div>
+        <h2>Connexion</h2>
+        <p class="auth-hint">Accédez à votre espace personnel</p>
+        <div id="err-login" class="alert alert-error hidden"></div>
+        <div class="form-group">
+          <label>Rôle</label>
+          <select id="login-role" onchange="updateLoginLabel()">
+            <option value="">-- Sélectionnez votre rôle --</option>
+            <option value="responsable">Responsable</option>
+            <option value="etudiant">Étudiant</option>
+            <option value="superviseur">Superviseur</option>
+            <option value="rapporteur">Rapporteur</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label id="lbl-login-id">Identifiant</label>
+          <input type="text" id="login-id" placeholder="INE ou adresse email"/>
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <div class="pw-wrap">
+            <input type="password" id="login-pw" placeholder="••••••••"/>
+            <button type="button" class="pw-eye" onclick="togglePw('login-pw',this)">👁</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="handleLogin()">Se connecter</button>
+        <div class="auth-sep">ou</div>
+        <p class="auth-switch">Nouveau responsable ? <a href="#" onclick="showPage('page-register')">Créer un compte</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE REGISTER ══════════════ -->
+<div id="page-register" class="page">
+  <div class="auth-split">
+    <div class="auth-brand">
+      <div class="brand-badge">GSA</div>
+      <h1>Créer<br/>un compte</h1>
+      <p class="brand-sub">Inscription Responsable de stage</p>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-card wide">
+        <h2>Créer un compte Responsable</h2>
+        <div id="err-register" class="alert alert-error hidden"></div>
+        <div id="ok-register"  class="alert alert-success hidden"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Nom</label><input type="text" id="reg-nom" placeholder="Nom"/></div>
+          <div class="form-group"><label>Prénom</label><input type="text" id="reg-prenom" placeholder="Prénom"/></div>
+        </div>
+        <div class="form-group">
+          <label>Email <span class="hint-label">(@gmail.com / @yahoo.com / @yahoo.fr)</span></label>
+          <input type="email" id="reg-mail" placeholder="exemple@gmail.com"/>
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <div class="pw-wrap"><input type="password" id="reg-pw" placeholder="••••••••"/><button type="button" class="pw-eye" onclick="togglePw('reg-pw',this)">👁</button></div>
+        </div>
+        <div class="form-group"><label>Confirmer le mot de passe</label><input type="password" id="reg-pw2" placeholder="••••••••"/></div>
+        <button class="btn btn-primary btn-full" onclick="handleRegister()">Créer le compte</button>
+        <p class="auth-switch mt-1">Déjà inscrit ? <a href="#" onclick="showPage('page-login')">Se connecter</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div id="page-dashboard" class="page">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sb-top">
+      <div class="brand-badge sm">GSA</div>
+      <span class="sb-brand-label">Gestion de Stage</span>
+      <button class="sb-close" onclick="toggleSidebar()">✕</button>
+    </div>
+    <div class="sb-user">
+      <div class="avatar" id="sb-avatar">?</div>
+      <div>
+        <div class="sb-name" id="sb-name">—</div>
+        <div class="sb-role-pill" id="sb-role-pill">—</div>
+      </div>
+    </div>
+    <nav id="sb-nav" class="sb-nav"></nav>
+    <button class="btn-logout" onclick="handleLogout()">⏻ Déconnexion</button>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-wrap">
+    <header class="topbar">
+      <button class="burger" onclick="toggleSidebar()">☰</button>
+      <span class="topbar-title" id="topbar-title">Tableau de bord</span>
+      <span class="topbar-user" id="topbar-user">—</span>
+    </header>
+    <main class="content">
+
+      <!-- Accueil -->
+      <section id="s-home" class="section active">
+        <div class="section-header">
+          <h2 id="home-greeting">Bienvenue</h2>
+          <p class="section-sub" id="home-sub">Sélectionnez une rubrique dans le menu.</p>
+        </div>
+        <div id="stats-grid" class="stats-grid"></div>
+      </section>
+
+      <!-- ── RESPONSABLE ── -->
+
+      <!-- Étudiants -->
+      <section id="s-etudiants" class="section">
+        <div class="section-header flex-between">
+          <div><h2>Étudiants</h2><p class="section-sub">Faites le point des etudiants qui doivent aller en stage</p><p><mark>une fois l'étudiant enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</mark></p></div>
+          <button class="btn btn-primary" onclick="openModal('m-add-etudiant')">+ Ajouter</button>
+        </div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>INE</th><th>Nom complet</th><th>Filière</th><th>Semestre</th><th>Email</th><th>Actions</th></tr></thead>
+            <tbody id="tb-etudiants"><tr><td colspan="6" class="empty">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Superviseurs -->
+      <section id="s-superviseurs" class="section">
+        <div class="section-header flex-between">
+          <div><h2>Superviseurs</h2><p class="section-sub">Encadrants d'entreprise</p><p><mark>une fois le superviseur enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</mark></p></div>
+          <button class="btn btn-primary" onclick="openModal('m-add-superviseur')">+ Ajouter</button>
+        </div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Nom</th><th>Prénom</th><th>Email</th><th>Actions</th></tr></thead>
+            <tbody id="tb-superviseurs"><tr><td colspan="4" class="empty">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Rapporteurs -->
+      <section id="s-rapporteurs" class="section">
+        <div class="section-header flex-between">
+          <div><h2>Rapporteurs</h2><p class="section-sub">Membres du jury académique</p><p><mark>une fois le rapporteur enregisté ou modifié,ses informations de connexion lui seront envoyés par mail</mark></p></div>
+          <button class="btn btn-primary" onclick="openModal('m-add-rapporteur')">+ Ajouter</button>
+        </div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Nom</th><th>Prénom</th><th>Email</th><th>Actions</th></tr></thead>
+            <tbody id="tb-rapporteurs"><tr><td colspan="4" class="empty">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Stages -->
+      <section id="s-stages" class="section">
+        <div class="section-header flex-between">
+          <div><h2>Stages</h2><p class="section-sub">Stages enregistrés et leurs affectations</p></div>
+          <button class="btn btn-primary" onclick="openModal('m-add-stage')">+ Ajouter</button>
+        </div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Titre</th><th>Entreprise</th><th>Ville</th><th>Étudiant</th><th>Superviseur</th><th>Rapporteur</th><th>Dates</th><th>Actions</th></tr></thead>
+            <tbody id="tb-stages"><tr><td colspan="8" class="empty">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Évaluations responsable -->
+      <section id="s-evaluations-resp" class="section">
+        <div class="section-header">
+          <h2>Évaluations</h2>
+          <p class="section-sub">Étudiants ayant soumis un rapport — téléchargez et notez</p>
+        </div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Étudiant</th><th>Stage</th><th>Rapport</th><th>Statut rapport</th><th>Note superviseur</th><th>Avis du superviseur</th><th>Note rapporteur</th><th>Avis du rapporteur</th><th>Ma note</th><th>Mon avis</th><th>Moyenne</th><th>Action</th></tr></thead>
+            <tbody id="tb-eval-resp"><tr><td colspan="9" class="empty">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── ÉTUDIANT ── -->
+
+      <!-- Mon Stage -->
+      <section id="s-mon-stage" class="section">
+        <div class="section-header"><h2>Mon Stage</h2><p class="section-sub">Informations sur votre stage en cours</p></div>
+        <div id="card-mon-stage" class="cards-grid"><div class="info-placeholder">Chargement…</div></div>
+      </section>
+
+      <!-- Mon Rapport -->
+      <section id="s-mon-rapport" class="section">
+        <div class="section-header flex-between">
+          <div><h2>Mon Rapport</h2><p class="section-sub">Déposez et gérez votre rapport de stage</p></div>
+          <button class="btn btn-primary" id="btn-rapport-action" onclick="ouvrirRapport()">+ Déposer</button>
+        </div>
+        <div id="card-mon-rapport" class="cards-grid"><div class="info-placeholder">Chargement…</div></div>
+      </section>
+
+      <!-- Mon Évaluation -->
+      <section id="s-mon-evaluation" class="section">
+        <div class="section-header"><h2>Mon Évaluation</h2><p class="section-sub">Notes et retours de votre jury</p></div>
+        <div id="card-mon-evaluation" class="cards-grid"><div class="info-placeholder">Chargement…</div></div>
+      </section>
+
+      <!-- ── SUPERVISEUR ── -->
+
+      <section id="s-sup-etudiants" class="section">
+        <div class="section-header"><h2>Mes Étudiants</h2><p class="section-sub">Étudiants assignés à votre supervision</p></div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>INE</th><th>Nom complet</th><th>Stage</th><th>Statut rapport</th><th>Actions</th><th>Evaluation</th></tr></thead>
+            <tbody id="tb-sup-etudiants"><tr><td colspan="5" class="empty">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── RAPPORTEUR ── -->
+
+      <section id="s-rapp-etudiants" class="section">
+        <div class="section-header"><h2>Mes Étudiants</h2><p class="section-sub">Étudiants assignés à votre jury</p></div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>INE</th><th>Nom complet</th><th>Stage</th><th>Statut rapport</th><th>Actions</th><th>Evaluation</th></tr></thead>
+            <tbody id="tb-rapp-etudiants"><tr><td colspan="5" class="empty">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+<div id="overlay" class="overlay hidden" onclick="overlayClick(event)">
+
+  <!-- -étudiant -->
+  <div id="m-add-etudiant" class="modal hidden">
+    <div class="mh"><h3 id="titre-m-etudiant">Ajouter un étudiant</h3><button onclick="closeModal('m-add-etudiant')">✕</button></div>
+    <div class="mb">
+      <div id="err-m-etudiant" class="alert alert-error hidden"></div>
+      <input type="hidden" id="et-mode"/> <!-- add | edit -->
+      <input type="hidden" id="et-id-edit"/>
+      <div class="form-row">
+        <div class="form-group"><label>Nom</label><input type="text" id="et-nom" placeholder="Nom"/></div>
+        <div class="form-group"><label>Prénom</label><input type="text" id="et-prenom" placeholder="Prénom"/></div>
+      </div>
+      <div class="form-group"><label>INE</label><input type="text" id="et-ine" placeholder="Ex : N00142020241"/></div>
+      <div class="form-group"><label>Email</label><input type="email" id="et-mail" placeholder="etudiant26@gmail.com"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>Filière</label><input type="text" id="et-filiere" placeholder="Informatique"/></div>
+        <div class="form-group"><label>Semestre</label><input type="number" id="et-semestre" placeholder="6" min="1" max="12"/></div>
+      </div>
+      <!-- Champ MDP uniquement à l'ajout -->
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-etudiant')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitEtudiant()">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Ajouter superviseur -->
+  <div id="m-add-superviseur" class="modal hidden">
+    <div class="mh"><h3 id="titre-m-sup">Ajouter un superviseur</h3><button onclick="closeModal('m-add-superviseur')">✕</button></div>
+    <div class="mb">
+      <div id="err-m-sup" class="alert alert-error hidden"></div>
+      <input type="hidden" id="sup-mode"/>
+      <input type="hidden" id="sup-id-edit"/>
+      <div class="form-row">
+        <div class="form-group"><label>Nom</label><input type="text" id="sup-nom" placeholder="Nom"/></div>
+        <div class="form-group"><label>Prénom</label><input type="text" id="sup-prenom" placeholder="Prénom"/></div>
+      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="sup-mail" placeholder="superviseur@gmail.com"/></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-superviseur')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitSuperviseur()">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Ajouter rapporteur -->
+  <div id="m-add-rapporteur" class="modal hidden">
+    <div class="mh"><h3 id="titre-m-rapp">Ajouter un rapporteur</h3><button onclick="closeModal('m-add-rapporteur')">✕</button></div>
+    <div class="mb">
+      <div id="err-m-rapp" class="alert alert-error hidden"></div>
+      <input type="hidden" id="rapp-mode"/>
+      <input type="hidden" id="rapp-id-edit"/>
+      <div class="form-row">
+        <div class="form-group"><label>Nom</label><input type="text" id="rapp-nom" placeholder="Nom"/></div>
+        <div class="form-group"><label>Prénom</label><input type="text" id="rapp-prenom" placeholder="Prénom"/></div>
+      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="rapp-mail" placeholder="rapporteur@gmail.com"/></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-rapporteur')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitRapporteur()">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Ajouter / Modifier Stage -->
+  <div id="m-add-stage" class="modal hidden">
+    <div class="mh"><h3 id="titre-m-stage">Ajouter un stage</h3><button onclick="closeModal('m-add-stage')">✕</button></div>
+    <marquee style="color: red; font-weight: bold; text-decoration: underline;">
+  IMPORTANT! : Une fois un stage ajouté, vous ne pourrez plus le modifier </marquee>
+  <marquee style="color: red; font-weight: bold; text-decoration: underline;"> il faudra le supprimer pour y lié les bonnes informations</marquee>
+    <p>un etudiant ne peut avoir qu'un seul stage</p>
+
+    <div class="mb">
+      <div id="err-m-stage" class="alert alert-error hidden"></div>
+      <input type="hidden" id="st-mode"/>
+      <input type="hidden" id="st-id-edit"/>
+      <div class="form-group"><label>Titre du stage</label><input type="text" id="st-titre" placeholder="Ex : Développement d'une API REST"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>Entreprise</label><input type="text" id="st-entreprise" placeholder="Nom entreprise"/></div>
+        <div class="form-group"><label>Ville</label><input type="text" id="st-ville" placeholder="Ouagadougou"/></div>
+      </div>
+      <div class="form-group"><label>Description (facultatif)</label><textarea id="st-desc" rows="2" placeholder="Missions, contexte…"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Date de début</label><input type="date" id="st-debut"/></div>
+        <div class="form-group"><label>Date de fin</label><input type="date" id="st-fin"/></div>
+      </div>
+      <div class="form-group">
+        <label>Étudiant</label>
+        <select id="st-etudiant"><option value="">-- Sélectionner un étudiant --</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Superviseur</label>
+          <select id="st-superviseur"><option value="">-- Sélectionner --</option></select>
+        </div>
+        <div class="form-group">
+          <label>Rapporteur</label>
+          <select id="st-rapporteur"><option value="">-- Sélectionner --</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-stage')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitStage()">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Rapport étudiant -->
+  <div id="m-rapport" class="modal hidden">
+    <div class="mh"><h3 id="titre-m-rapport">Déposer mon rapport</h3><button onclick="closeModal('m-rapport')">✕</button></div>
+    <div class="mb">
+      <div id="err-m-rapport" class="alert alert-error hidden"></div>
+      <div class="form-group"><label>Titre du rapport</label><input type="text" id="rp-titre" placeholder="Titre de votre rapport"/></div>
+      <!--<div class="form-group"><label>Chemin / URL du fichier</label><input type="text" id="rp-chemin" placeholder="/rapports/mon_rapport.pdf"/></div> -->
+      <div class="form-group"><label>Résumé / Contenu (facultatif)</label><textarea id="rp-contenu" rows="3" placeholder="Résumé de votre rapport…"></textarea></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-rapport')">Annuler</button>
+      <button class="btn btn-primary" id="btn-submit-rapport" onclick="submitRapport()">Déposer</button>
+    </div>
+  </div>
+
+  <!-- Évaluation (rôle unique : son propre bloc) -->
+  <div id="m-evaluer" class="modal hidden">
+    <div class="mh"><h3 id="titre-m-eval">Évaluer l'étudiant</h3><button onclick="closeModal('m-evaluer')">✕</button></div>
+     <marquee style="color: red; font-weight: bold; text-decoration: underline;">
+  IMPORTANT! : Une fois l'Evaluation enregistré, </marquee>
+  <marquee style="color: red; font-weight: bold; text-decoration: underline;"> vous ne pourrez pas supprimer l'etudiant</marquee>
+    <div class="mb">
+      <div id="err-m-eval" class="alert alert-error hidden"></div>
+      <!-- Rapport à consulter -->
+      <div id="eval-rapport-box" class="rapport-info-box"></div>
+      <!-- Bloc note unique -->
+      <div class="eval-bloc">
+        <h4 id="eval-bloc-label">Ma note</h4>
+        <div class="form-group">
+          <label>Note (/20)</label>
+          <input type="number" id="eval-note" min="0" max="20" step="0.5" placeholder="0 – 20"/>
+        </div>
+        <div class="form-group">
+          <label>Commentaire</label>
+          <textarea id="eval-avis" rows="3" placeholder="Votre appréciation…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-evaluer')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitEvaluation()">Enregistrer la note</button>
+    </div>
+  </div>
+
+  <!-- Évaluation responsable (note uniquement, rapport en lecture seule) -->
+  <div id="m-eval-resp" class="modal hidden">
+    <div class="mh"><h3>Évaluer — Responsable</h3><button onclick="closeModal('m-eval-resp')">✕</button></div>
+    <div class="mb">
+      <div id="err-m-eval-resp" class="alert alert-error hidden"></div>
+      <div id="eval-resp-rapport-box" class="rapport-info-box"></div>
+      <div class="eval-bloc">
+        <h4>📋 Ma note (Responsable)</h4>
+        <div class="form-group"><label>Note (/20)</label><input type="number" id="eval-resp-note" min="0" max="20" step="0.5" placeholder="0 – 20"/></div>
+        <div class="form-group"><label>Commentaire</label><textarea id="eval-resp-avis" rows="3" placeholder="Votre appréciation…"></textarea></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-eval-resp')">Annuler</button>
+      <button class="btn btn-primary" onclick="submitEvalResponsable()">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Confirmer suppression -->
+  <div id="m-delete" class="modal modal-sm hidden">
+    <div class="mh"><h3>Confirmer la suppression</h3><button onclick="closeModal('m-delete')">✕</button></div>
+    <div class="mb">
+      <p id="del-msg" style="color:var(--muted);margin-bottom:.5rem;font-size:.9rem"></p>
+      <p style="color:var(--danger);font-size:.82rem">⚠️ Cette action est irréversible.</p>
+    </div>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeModal('m-delete')">Annuler</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Supprimer</button>
+    </div>
+  </div>
+
+</div><!-- /overlay -->
+
+<div id="toast" class="toast hidden"></div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
