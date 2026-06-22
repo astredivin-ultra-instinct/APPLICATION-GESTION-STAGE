@@ -212,7 +212,7 @@ def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
         envoyer_mail_async(
             "Création de votre compte(Etudiant) - Gestion des Stages",
             mail,
-            f"""Camarade {prenom} {nom},\n\nVotre compte étudiant a été créé par le responsable de stage.\n\nINE: {ine}\nMot de passe: {temp}\nFilière: {filiere}\n\nhttps://application-gestion-stage-5.onrender.com"""
+            f"""Camarade {prenom} {nom},\n\nVotre compte étudiant a été créé par le responsable de stage connectez vous pour voir les détails.\n\nINE: {ine}\nMot de passe: {temp}\nFilière: {filiere}\n\nhttps://application-gestion-stage-5.onrender.com"""
         )
         return {"success": True, "message": "Étudiant ajouté avec succès."}
 
@@ -243,9 +243,9 @@ def add_superviseur(id_responsable, nom, prenom, mail):
         session.commit()
 
         envoyer_mail_async(
-            "Création compte superviseur",
+            "Création compte superviseur sur la plateforme de Gestion de Stage",
             mail,
-            f"""Camarade {prenom} {nom},\n\nVotre compte superviseur a été créé par le responsable de stage.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
+            f"""Camarade {prenom} {nom},\n\nVotre compte superviseur a été créé par le responsable de stage vous serez solicité à superviser un ou plusieurs etudiant(s).\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
         )
         return {"success": True, "message": "Superviseur ajouté avec succès."}
 
@@ -276,9 +276,9 @@ def add_rapporteur(id_responsable, nom, prenom, mail):
         session.commit()
 
         envoyer_mail_async(
-            "Création compte rapporteur",
+            "Création compte rapporteur sur la plateforme de Gestion de Stage",
             mail,
-            f"""Camarade {prenom} {nom},\n\nVotre compte rapporteur a été créé par le responsable de stage.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
+            f"""Camarade {prenom} {nom},\n\nVotre compte rapporteur a été créé par le responsable de stage vous serez soliciter à suivre un/des étudiants pendant leur stage.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
         )
         return {"success": True, "message": "Rapporteur ajouté avec succès."}
 
@@ -314,7 +314,7 @@ def modifier_etudiant(id_responsable, id_etudiant, ine, nom, prenom, mail, filie
         session.commit()
 
         envoyer_mail_async(
-            "Modification compte étudiant",
+            "Modificationt-compte étudiant sur la plateforme de Gestion de Stage",
             mail,
             f"""Camarade {prenom} {nom},
 
@@ -360,7 +360,7 @@ def modifier_superviseur(id_responsable, id_superviseur, nom, prenom, mail):
         session.commit()
 
         envoyer_mail_async(
-            "Modification superviseur",
+            "Modification de votre compte superviseur sur la plateforme de Gestion de Stage",
             mail,
             f"""Camarade {prenom} {nom},
 
@@ -404,7 +404,7 @@ def modifier_rapporteur(id_responsable, id_rapporteur, nom, prenom, mail):
         session.commit()
 
         envoyer_mail_async(
-            "Modification rapporteur",
+            "Modification de votre compte rapporteur  sur la plateforme de Gestion de Stage",
             mail,
             f"""Camarade {prenom} {nom},
 
