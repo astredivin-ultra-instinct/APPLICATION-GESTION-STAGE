@@ -189,6 +189,6 @@ class Evaluation(Base):
 
 
 
-def init_db():
+def init_db(): 
     Base.metadata.create_all(engine)
     print("Tables  créee avec succès")
