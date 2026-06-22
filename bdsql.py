@@ -187,8 +187,6 @@ class Evaluation(Base):
 
         return round(sum(notes) / len(notes), 2)
 
-
-
 def init_db(): 
     Base.metadata.create_all(engine)
     print("Tables  créee avec succès")

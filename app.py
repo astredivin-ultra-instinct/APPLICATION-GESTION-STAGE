@@ -41,8 +41,8 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    #from bdsql import  init_db
+    from bdsql import  init_db
     with app.app_context():
-        #init_db()
+        init_db()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
