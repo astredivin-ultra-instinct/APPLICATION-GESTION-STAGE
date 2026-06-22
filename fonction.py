@@ -219,7 +219,7 @@ def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
         envoyer_mail_async(
             "Création de votre compte(Etudiant) - Gestion des Stages",
             mail,
-            f"""Camarade {prenom} {nom},\n\nCompte créé.\n\nINE: {ine}\nMot de passe: {temp}\nFilière: {filiere}\n\nhttps://application-gestion-stage-5.onrender.com"""
+            f"""Camarade {prenom} {nom},\n\nVotre compte étudiant a été créé par le responsable de stage.\n\nINE: {ine}\nMot de passe: {temp}\nFilière: {filiere}\n\nhttps://application-gestion-stage-5.onrender.com"""
         )
         return {"success": True, "message": "Étudiant ajouté avec succès."}
 
@@ -252,7 +252,7 @@ def add_superviseur(id_responsable, nom, prenom, mail):
         envoyer_mail_async(
             "Création compte superviseur",
             mail,
-            f"""Bonjour {prenom} {nom},\n\nCompte superviseur créé.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
+            f"""Camarade {prenom} {nom},\n\nVotre compte superviseur a été créé par le responsable de stage.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
         )
         return {"success": True, "message": "Superviseur ajouté avec succès."}
 
@@ -285,7 +285,7 @@ def add_rapporteur(id_responsable, nom, prenom, mail):
         envoyer_mail_async(
             "Création compte rapporteur",
             mail,
-            f"""Bonjour {prenom} {nom},\n\nCompte rapporteur créé.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
+            f"""Camarade {prenom} {nom},\n\nVotre compte rapporteur a été créé par le responsable de stage.\n\nMail: {mail}\nMot de passe: {temp}\n\nhttps://application-gestion-stage-5.onrender.com"""
         )
         return {"success": True, "message": "Rapporteur ajouté avec succès."}
 
@@ -369,7 +369,7 @@ def modifier_superviseur(id_responsable, id_superviseur, nom, prenom, mail):
         envoyer_mail_async(
             "Modification superviseur",
             mail,
-            f"""Bonjour {prenom} {nom},
+            f"""Camarade {prenom} {nom},
 
 Votre compte a été modifié.
 
@@ -413,7 +413,7 @@ def modifier_rapporteur(id_responsable, id_rapporteur, nom, prenom, mail):
         envoyer_mail_async(
             "Modification rapporteur",
             mail,
-            f"""Bonjour {prenom} {nom},
+            f"""Camarade {prenom} {nom},
 
 Votre compte a été modifié.
 
