@@ -6,7 +6,7 @@ import os
 api_bp = Blueprint("api", __name__)
 
 # =========================
-# AUTH RESPONSABLE https://github.com/astredivin-ultra-instinct/APPLICATION-GESTION-STAGE
+# RESPONSABLE
 # =========================
 @api_bp.route("/responsable/connexion", methods=["POST"])
 def connexion_responsable():
@@ -20,7 +20,7 @@ def ajouter_responsable():
 
 
 # =========================
-# AUTH ETUDIANT
+# ETUDIANT
 # =========================
 @api_bp.route("/etudiant/connexion", methods=["POST"])
 def connexion_etudiant():
@@ -29,7 +29,7 @@ def connexion_etudiant():
 
 
 # =========================
-# AUTH SUPERVISEUR
+# SUPERVISEUR
 # =========================
 @api_bp.route("/superviseur/connexion", methods=["POST"])
 def connexion_superviseur():
@@ -38,7 +38,7 @@ def connexion_superviseur():
 
 
 # =========================
-# AUTH RAPPORTEUR
+#  RAPPORTEUR
 # =========================
 @api_bp.route("/rapporteur/connexion", methods=["POST"])
 def connexion_rapporteur():

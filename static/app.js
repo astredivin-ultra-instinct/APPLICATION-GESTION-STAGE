@@ -1,106 +1,19 @@
-/* ═══════════════════════════════════════════════════════════════
-   GESTION DE STAGE — app.js
-   Calé EXACTEMENT sur index3.html (IDs, modals, boutons)
-   Routes Flask (url_prefix="/api") tirées de route.py
-═══════════════════════════════════════════════════════════════
-
-   IDs HTML utilisés (NE PAS CHANGER) :
-   ── Auth ──────────────────────────────────────────────────────
-   page-login, page-register, page-dashboard
-   login-role, lbl-login-id, login-id, login-pw, err-login
-   reg-nom, reg-prenom, reg-mail, reg-pw, reg-pw2
-   err-register, ok-register
-   sb-avatar, sb-name, sb-role-pill, sb-nav
-   topbar-title, topbar-user
-   home-greeting, home-sub, stats-grid
-
-   ── Modals ────────────────────────────────────────────────────
-   overlay
-   m-add-etudiant  → et-mode, et-id-edit, titre-m-etudiant,
-                     err-m-etudiant, et-nom, et-prenom, et-ine,
-                     et-mail, et-filiere, et-semestre
-   m-add-superviseur → sup-mode, sup-id-edit, titre-m-sup,
-                        err-m-sup, sup-nom, sup-prenom, sup-mail
-   m-add-rapporteur  → rapp-mode, rapp-id-edit, titre-m-rapp,
-                        err-m-rapp, rapp-nom, rapp-prenom, rapp-mail
-   m-add-stage      → st-mode, titre-m-stage, err-m-stage,
-                        st-titre, st-entreprise, st-ville, st-desc,
-                        st-debut, st-fin,
-                        st-etudiant, st-superviseur, st-rapporteur
-   m-rapport        → err-m-rapport, rp-titre, rp-chemin, rp-contenu
-                        titre-m-rapport, btn-submit-rapport
-   m-evaluer        → titre-m-eval, err-m-eval, eval-rapport-box,
-                        eval-bloc-label, eval-note, eval-avis
-   m-eval-resp      → err-m-eval-resp, eval-resp-rapport-box,
-                        eval-resp-note, eval-resp-avis
-   m-delete         → del-msg
-
-   ── Tableaux ──────────────────────────────────────────────────
-   tb-etudiants, tb-superviseurs, tb-rapporteurs, tb-stages
-   tb-eval-resp, tb-sup-etudiants, tb-rapp-etudiants
-
-   ── Étudiant ──────────────────────────────────────────────────
-   card-mon-stage, card-mon-rapport, card-mon-evaluation
-   btn-rapport-action
-
-   ── Sections ──────────────────────────────────────────────────
-   s-home, s-etudiants, s-superviseurs, s-rapporteurs, s-stages
-   s-evaluations-resp, s-mon-stage, s-mon-rapport, s-mon-evaluation
-   s-sup-etudiants, s-rapp-etudiants
-
-   ── Routes Flask ──────────────────────────────────────────────
-   POST /login                              {role,identifier,password}
-   POST /responsable/ajouter               {nom,prenom,mail,password}
-   GET  /etudiants/liste/{id_resp}
-   POST /etudiants/ajouter                 {id_responsable,ine,nom,prenom,mail,filiere,semestre,password}
-   POST /etudiants/modifier                {id_responsable,id_etudiant,ine,nom,prenom,mail,filiere,semestre}
-   DELETE /etudiants/{ine}                 body:{id_responsable,password}
-   GET  /superviseurs/liste/{id_resp}
-   POST /superviseurs/ajouter              {id_responsable,nom,prenom,mail,password}
-   POST /superviseurs/modifier             {id_responsable,id_superviseur,nom,prenom,mail}
-   DELETE /superviseurs/{id}               body:{id_responsable,password}
-   GET  /rapporteurs/liste/{id_resp}
-   POST /rapporteurs/ajouter               {id_responsable,nom,prenom,mail,password}
-   POST /rapporteurs/modifier              {id_responsable,id_rapporteur,nom,prenom,mail}
-   DELETE /rapporteurs/{id}                body:{id_responsable,password}
-   GET  /stages/liste/{id_resp}
-   POST /stages/ajouter                    {id_responsable,password,titre,entreprise,ville,
-                                            description,date_debut,date_fin,
-                                            id_etudiant,id_superviseur,id_rapporteur}
-   DELETE /stages/{id}                     body:{id_responsable,password}
-   GET  /rapport/voir/{id_stage}
-   POST /rapport/ajouter                   {id_stage,titre,chemin_fichier,contenu}  multipart ou JSON
-   POST /rapport/modifier                  {id_stage,titre,chemin_fichier,contenu}
-   POST /rapport/valider                   {id_stage}
-   POST /evaluation/responsable            {id_rapport,note,avis}
-   POST /evaluation/superviseur            {id_rapport,note,avis}
-   POST /evaluation/rapporteur             {id_rapport,note,avis}
-   GET  /etudiant/stage/{id_etudiant}
-   GET  /etudiant/evaluation/{ine}
-   GET  /superviseur/stages/{id_superviseur}
-   GET  /rapporteur/stages/{id_rapporteur}
-   GET  /responsable/evaluation/{ine}
-   GET  /superviseur/evaluation/{ine}
-   GET  /rapporteur/evaluation/{ine}
-═══════════════════════════════════════════════════════════════ */
 
 const API = '/api';
 
-// ─── État global ─────────────────────────────────────────────
+// GLOBAL
 let currentUser      = null;
 let studentsData     = [];
 let superviseursData = [];
 let rapporteursData  = [];
-let _evalCtx         = null;   // { role, id_rapport, chemin, titre, ine }
-let _deleteCtx       = null;   // { type, id, label }
+let _evalCtx         = null;  
+let _deleteCtx       = null;   
 
-// ─── Helpers ─────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const VALID_MAILS = ['@gmail.com', '@yahoo.com', '@yahoo.fr'];
 const okMail = m => VALID_MAILS.some(d => (m || '').endsWith(d));
 const esc = s => (s || '').toString().replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-// Récupère l'id_responsable depuis currentUser quelle que soit la clé
 const respId = () => currentUser?.id_responsable || currentUser?.id || null;
 
 function toast(msg, type = 'info') {
@@ -124,7 +37,6 @@ function togglePw(inputId, btn) {
 
 function toggleSidebar() { $('sidebar')?.classList.toggle('open'); }
 
-// ─── Fetch helpers ───────────────────────────────────────────
 async function api(path, method = 'GET', body = null) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
@@ -137,9 +49,7 @@ async function api(path, method = 'GET', body = null) {
     }
 }
 
-// Upload multipart (pour PDF)
-// IMPORTANT : Ne jamais passer Content-Type manuellement avec FormData.
-// Le navigateur le définit automatiquement avec le bon boundary.
+// Pour Upluoad les pdf
 async function apiUpload(path, formData) {
     try {
         const res  = await fetch(API + path, {
@@ -154,13 +64,13 @@ async function apiUpload(path, formData) {
     }
 }
 
-// ─── Pages ───────────────────────────────────────────────────
+//Pages 
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     $(id)?.classList.add('active');
 }
 
-// ─── Sections ────────────────────────────────────────────────
+//  Section
 function showSection(id) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     $(id)?.classList.add('active');
@@ -204,7 +114,7 @@ function overlayClick(e) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  AUTH
+//  Connexion
 // ═══════════════════════════════════════════════════════════════
 function updateLoginLabel() {
     const role = $('login-role')?.value;
@@ -223,7 +133,7 @@ async function handleLogin() {
         setErr('err-login', 'Tous les champs sont requis.'); return;
     }
 
-    // Routes exactes définies dans route.py
+    // Routes
     const ROUTES = {
         responsable: ['/responsable/connexion', { mail: identifier, password }],
         etudiant:    ['/etudiant/connexion',    { ine:  identifier, password }],
@@ -239,7 +149,6 @@ async function handleLogin() {
         setErr('err-login', r.data.message || 'Identifiants incorrects.'); return;
     }
 
-    // Normaliser les IDs selon le rôle (Flask peut renvoyer "id" ou "id_responsable" etc.)
     const ud = { ...r.data, role, password };
     if (role === 'responsable') ud.id_responsable = ud.id_responsable || ud.id;
     if (role === 'etudiant')    ud.id_etudiant    = ud.id_etudiant    || ud.id;
@@ -316,7 +225,7 @@ function restoreUserSession() {
     }
 }
 
-// ─── Sidebar ─────────────────────────────────────────────────
+// ─── Sidebar 
 function buildSidebar() {
     if (!currentUser) return;
     const MENUS = {
@@ -353,7 +262,7 @@ function buildSidebar() {
         d.onclick     = () => { showSection(item.s); loadSection(item.s); if (window.innerWidth < 769) toggleSidebar(); };
         nav.appendChild(d);
     });
-    // Tolérance aux noms de champs différents selon la version du backend
+  
     const prenom = currentUser.prenom || '';
     const nom    = currentUser.nom    || currentUser.name || '';
     const ine    = currentUser.ine    || '';
@@ -365,7 +274,7 @@ function buildSidebar() {
     if ($('sb-role-pill')) $('sb-role-pill').textContent = RL[currentUser.role] || currentUser.role;
 }
 
-// ─── Router sections ─────────────────────────────────────────
+// ─── Router sections 
 async function loadSection(id) {
     const role = currentUser?.role;
     if (id === 's-home')             loadHomeStats();
@@ -387,7 +296,7 @@ async function loadSection(id) {
     if (role === 'rapporteur'  && id === 's-rapp-etudiants') loadRappStages();
 }
 
-// ─── Stats accueil ───────────────────────────────────────────
+// ─── Stats accueil
 async function loadHomeStats() {
     const g = $('stats-grid'); if (!g) return;
     if ($('home-greeting')) $('home-greeting').textContent = `Bonjour, ${currentUser.prenom || currentUser.nom} 👋`;
@@ -426,15 +335,8 @@ async function loadHomeStats() {
 
 // ═══════════════════════════════════════════════════════════════
 //  RESPONSABLE — ÉTUDIANTS
-//  Modal : m-add-etudiant
-//  Champs : et-mode, et-id-edit, titre-m-etudiant, err-m-etudiant
-//           et-nom, et-prenom, et-ine, et-mail, et-filiere, et-semestre
-//  Tableau : tb-etudiants
 // ═══════════════════════════════════════════════════════════════
 
-// Appelé par le bouton "+ Ajouter" dans la section Étudiants
-// <button onclick="openModal('m-add-etudiant')"> dans HTML
-// → on intercepte l'ouverture pour réinitialiser le formulaire
 function _initModalEtudiantAjout() {
     clearErr('err-m-etudiant');
     // Vider tous les champs
@@ -446,7 +348,7 @@ function _initModalEtudiantAjout() {
     if ($('titre-m-etudiant'))  $('titre-m-etudiant').textContent = 'Ajouter un étudiant';
 }
 
-// Surcharge openModal pour réinitialiser les modals avant ouverture
+
 const _openModalOriginal = window.openModal;
 function openModal(id) {
     // Réinitialisation propre selon le modal
@@ -495,8 +397,7 @@ async function submitEtudiant() {
 
     let r;
     if (mode === 'add') {
-        // Le backend (generer_password) crée le vrai mot de passe et l'envoie par mail.
-        // On envoie un mot de passe temporaire aléatoire pour satisfaire la validation.
+
         const tempPw = 'Tmp' + Math.random().toString(36).slice(-8) + '!';
         r = await api('/etudiants/ajouter', 'POST', {
             id_responsable: respId(), ine, nom, prenom, mail, filiere, semestre, password: tempPw
@@ -543,10 +444,6 @@ async function loadEtudiants() {
 
 // ═══════════════════════════════════════════════════════════════
 //  RESPONSABLE — SUPERVISEURS
-//  Modal : m-add-superviseur
-//  Champs : sup-mode, sup-id-edit, titre-m-sup, err-m-sup
-//           sup-nom, sup-prenom, sup-mail
-//  Tableau : tb-superviseurs
 // ═══════════════════════════════════════════════════════════════
 function _initModalSupAjout() {
     clearErr('err-m-sup');
@@ -614,10 +511,6 @@ async function loadSuperviseurs() {
 
 // ═══════════════════════════════════════════════════════════════
 //  RESPONSABLE — RAPPORTEURS
-//  Modal : m-add-rapporteur
-//  Champs : rapp-mode, rapp-id-edit, titre-m-rapp, err-m-rapp
-//           rapp-nom, rapp-prenom, rapp-mail
-//  Tableau : tb-rapporteurs
 // ═══════════════════════════════════════════════════════════════
 function _initModalRappAjout() {
     clearErr('err-m-rapp');
@@ -685,11 +578,6 @@ async function loadRapporteurs() {
 
 // ═══════════════════════════════════════════════════════════════
 //  RESPONSABLE — STAGES
-//  Modal : m-add-stage
-//  Champs : titre-m-stage, err-m-stage, st-titre, st-entreprise,
-//           st-ville, st-desc, st-debut, st-fin,
-//           st-etudiant (dropdown), st-superviseur, st-rapporteur
-//  Tableau : tb-stages
 // ═══════════════════════════════════════════════════════════════
 function _updateStageDropdowns() {
     const selEt  = $('st-etudiant');
@@ -796,27 +684,10 @@ async function loadStages() {
         </td>
     </tr>`;
 }).join('');
-    /*tb.innerHTML = stages.map(st => `<tr>
-        <td><b>${st.titre}</b></td>
-        <td>${st.entreprise}</td>
-        <td>${st.ville}</td>
-        <td>${etIdx[st.etudiant]    || etIdx[st.id_etudiant]    || '#'+st.etudiant}</td>
-        <td>${supIdx[st.superviseur] || supIdx[st.id_superviseur] || '#'+st.superviseur}</td>
-        <td>${rapIdx[st.rapporteur]  || rapIdx[st.id_rapporteur]  || '#'+st.rapporteur}</td>
-        <td style="font-size:.78rem;white-space:nowrap">${st.date_debut}<br>${st.date_fin}</td>
-        <td class="ac">
-            <button class="btn-icon" onclick="ouvrirDelete('stage',${st.id_stage},'${esc(st.titre)}')">🗑️</button>
-        </td></tr>`).join('');*/
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  RESPONSABLE — ÉVALUATIONS
-//  Tableau : tb-eval-resp
-//  Modal   : m-eval-resp
-//  Champs  : eval-resp-rapport-box, eval-resp-note, eval-resp-avis, err-m-eval-resp
-//
-//  IMPORTANT : La route GET /responsable/evaluation/{ine} reçoit une INE.
-//  Le lien stage→rapport→ine est fait ici dans le JS.
 // ═══════════════════════════════════════════════════════════════
 async function loadEvalsResp() {
     const tb = $('tb-eval-resp'); if (!tb) return;
@@ -918,7 +789,6 @@ async function loadMonStage() {
     if (!st || !st.id_stage) {
         c.innerHTML = '<div class="info-placeholder">Aucun stage enregistré pour votre compte.</div>'; return;
     }
-    // Mémoriser id_stage pour les appels rapport
     currentUser._id_stage = st.id_stage;
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
@@ -934,17 +804,6 @@ async function loadMonStage() {
 
 // ═══════════════════════════════════════════════════════════════
 //  ÉTUDIANT — MON RAPPORT
-//  Conteneur : card-mon-rapport
-//  Bouton    : btn-rapport-action
-//  Modal     : m-rapport
-//  Champs    : rp-titre, rp-chemin, rp-contenu, err-m-rapport,
-//              titre-m-rapport, btn-submit-rapport
-//
-//  Logique : En attente → peut modifier/valider
-//            Terminé    → verrouillé, lecture seule
-//
-//  Upload PDF : on utilise FormData si un fichier est sélectionné,
-//               sinon JSON avec chemin textuel.
 // ═══════════════════════════════════════════════════════════════
 async function loadMonRapport() {
     const c   = $('card-mon-rapport');
@@ -952,7 +811,6 @@ async function loadMonRapport() {
     if (!c) return;
     c.innerHTML = '<div class="info-placeholder">Chargement…</div>';
 
-    // Récupérer id_stage — on recharge toujours depuis l'API pour fiabilité
     if (!currentUser._id_stage) {
         const rs = await api(`/etudiant/stage/${currentUser.id_etudiant || currentUser.id}`);
         if (rs.ok && rs.data?.id_stage) {
@@ -1026,7 +884,6 @@ function ouvrirModalRapport() {
             mb.insertBefore(fileWrap, mb.firstChild);
         }
     }
-    // Réinitialiser le champ file
     const fi = $('rp-fichier'); if (fi) fi.value = '';
     if ($('titre-m-rapport')) $('titre-m-rapport').textContent = 'Déposer / Modifier mon rapport';
     $('overlay')?.classList.remove('hidden');
@@ -1036,7 +893,6 @@ function ouvrirModalRapport() {
 async function submitRapport() {
     clearErr('err-m-rapport');
 
-    // Récupérer id_stage — peut être absent si session restaurée depuis localStorage
     let id_stage = currentUser._id_stage;
     if (!id_stage) {
         const rSt = await api(`/etudiant/stage/${currentUser.id_etudiant}`);
@@ -1063,26 +919,23 @@ async function submitRapport() {
         setErr('err-m-rapport', 'Uniquement les fichiers .pdf sont acceptés.'); return;
     }
 
-    // Vérifier si rapport existant
     const rEx   = await api(`/rapport/voir/${id_stage}`);
     const existe = rEx.data?.id_rapport;
     if (existe && rEx.data.status === 'Terminé') {
         setErr('err-m-rapport', 'Rapport verrouillé — modification impossible.'); return;
     }
 
-    // TOUJOURS FormData (la route Flask attend request.files['file'])
     const fd = new FormData();
-    fd.append('id_stage', String(id_stage));  // Flask : request.form.get("id_stage") → string puis int()
+    fd.append('id_stage', String(id_stage));  
     fd.append('titre',    titre);
     fd.append('contenu',  contenu || '');
-    fd.append('file',     file);              // clé "file" : request.files['file'] dans route.py
+    fd.append('file',     file);             
 
     const r = await apiUpload(existe ? '/rapport/modifier' : '/rapport/ajouter', fd);
 
     if (r.data.success) {
         toast('Rapport déposé avec succès.', 'success');
         closeModal('m-rapport');
-        // Réinitialiser l'input file
         if (fileInput) fileInput.value = '';
         await loadMonRapport();
     } else { setErr('err-m-rapport', r.data.message || 'Erreur lors du dépôt.'); }
@@ -1097,7 +950,6 @@ async function validerRapport() {
 
 // ═══════════════════════════════════════════════════════════════
 //  ÉTUDIANT — MON ÉVALUATION
-//  Conteneur : card-mon-evaluation
 // ═══════════════════════════════════════════════════════════════
 async function loadMonEvaluation() {
     const c = $('card-mon-evaluation'); if (!c) return;
@@ -1126,11 +978,6 @@ async function loadMonEvaluation() {
 
 // ═══════════════════════════════════════════════════════════════
 //  SUPERVISEUR — MES STAGES & ÉVALUATION
-//  Tableau : tb-sup-etudiants
-//  Modal   : m-evaluer (bloc unique superviseur)
-//
-//  IMPORTANT : La route /superviseur/evaluation/{ine} prend une INE.
-//  On récupère l'INE via l'id_etudiant du stage.
 // ═══════════════════════════════════════════════════════════════
 async function loadSupStages() {
     const tb = $('tb-sup-etudiants'); if (!tb) return;
@@ -1144,7 +991,6 @@ async function loadSupStages() {
         const rRp = await api(`/rapport/voir/${st.id_stage}`);
         const rap = rRp.data?.id_rapport ? rRp.data : null;
 
-        // /etudiants/{id}/by-id retourne une LISTE → on prend le 1er élément
         const idEt   = st.id_etudiant || st.etudiant;
         const rEt    = await api(`/etudiants/${idEt}/by-id`).catch(() => ({ data: [] }));
         const etData = Array.isArray(rEt.data) ? rEt.data[0] : rEt.data;
@@ -1181,8 +1027,6 @@ async function loadSupStages() {
 
 // ═══════════════════════════════════════════════════════════════
 //  RAPPORTEUR — MES STAGES & ÉVALUATION
-//  Tableau : tb-rapp-etudiants
-//  Modal   : m-evaluer (bloc unique rapporteur)
 // ═══════════════════════════════════════════════════════════════
 async function loadRappStages() {
     const tb = $('tb-rapp-etudiants'); if (!tb) return;
@@ -1229,9 +1073,7 @@ async function loadRappStages() {
     tb.innerHTML = rows.join('');
 }
 
-// ─── Modal évaluation encadreur (superviseur ou rapporteur) ──
-// Champs : titre-m-eval, err-m-eval, eval-rapport-box,
-//          eval-bloc-label, eval-note, eval-avis
+// ─── Modal évaluation encadreur (superviseur ou rapporteur) 
 function ouvrirEvalEncadreur(role, id_rapport, chemin, titre, ine) {
     _evalCtx = { role, id_rapport, chemin, titre, ine: String(ine) };
     const LBL = { superviseur: '🏢 Ma note — Superviseur', rapporteur: '📝 Ma note — Rapporteur' };
@@ -1257,7 +1099,6 @@ async function submitEvaluation() {
     const path = _evalCtx.role === 'superviseur' ? '/evaluation/superviseur' : '/evaluation/rapporteur';
     const r    = await api(path, 'POST', { id_rapport: _evalCtx.id_rapport, note, avis });
 
-    // Compatible avec Flask qui renvoie {success:true} ou {message:"..."} sans champ success
     const ok = r.ok && (r.data.success === true || (r.data.success === undefined && !r.data.error));
     if (ok) {
         toast('Note enregistrée avec succès !', 'success');
@@ -1271,28 +1112,8 @@ async function submitEvaluation() {
 
 }
 
-/*async function submitEvaluation() {
-    clearErr('err-m-eval');
-    if (!_evalCtx) { setErr('err-m-eval', 'Contexte perdu — réessayez.'); return; }
-    const note = parseFloat($('eval-note')?.value);
-    const avis = $('eval-avis')?.value.trim() || null;
-    if (isNaN(note) || note < 0 || note > 20) { setErr('err-m-eval', 'Note entre 0 et 20 requise.'); return; }
-
-    const path = _evalCtx.role === 'superviseur' ? '/evaluation/superviseur' : '/evaluation/rapporteur';
-    const r    = await api(path, 'POST', { id_rapport: _evalCtx.id_rapport, note, avis });
-
-    if (r.data.success) {
-        toast('Note enregistrée.', 'success');
-        closeModal('m-evaluer');
-        _evalCtx = null;
-        if (currentUser.role === 'superviseur') loadSupStages();
-        else loadRappStages();
-    } else { setErr('err-m-eval', r.data.message || 'Erreur.'); }
-}*/
-
 // ═══════════════════════════════════════════════════════════════
 //  SUPPRESSION GÉNÉRIQUE
-//  Modal : m-delete  Champs : del-msg
 // ═══════════════════════════════════════════════════════════════
 function ouvrirDelete(type, id, label) {
     _deleteCtx = { type, id, label };
@@ -1307,7 +1128,6 @@ async function confirmDelete() {
     const id_resp = respId();
     let r;
 
-    // Toutes les suppressions sont en POST (comme défini dans route.py)
     if (type === 'etudiant')
         r = await api('/etudiants/supprimer', 'POST', { id_responsable: id_resp, ine: id });
     else if (type === 'superviseur')

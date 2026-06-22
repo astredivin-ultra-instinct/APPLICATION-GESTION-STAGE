@@ -139,9 +139,10 @@ class Rapport(Base):
     status = Column(String(20),default="En attente")
 
     contenu = Column(Text,nullable=True)
+
     date_soumission = Column(DateTime,default=func.now())
 
-    id_stage = Column(Integer,ForeignKey("stage.id_stage"),unique=True,nullable=True)
+    id_stage = Column(Integer,ForeignKey("stage.id_stage"))
 
     stage = relationship("Stage")
 
@@ -188,6 +189,6 @@ class Evaluation(Base):
 
 
 
-
-Base.metadata.create_all(engine)
-print("Tables  créee avec succès")
+def init_db():
+    Base.metadata.create_all(engine)
+    print("Tables  créee avec succès")

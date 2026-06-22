@@ -4,13 +4,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from bdsql import Session, Responsable, Etudiant, Superviseur, Rapporteur, Stage, Rapport, Evaluation
 import re
 from flask import jsonify
-# =========================
-# OUTILS
-# =========================
-
-"""def generer_password(longueur=8):
-    caracteres = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(caracteres) for _ in range(longueur))"""
 
 
 def envoyer_mail(destinataire, sujet, contenu):
@@ -192,7 +185,7 @@ def envoyer_mail_async(subject, recipient, body):
     except Exception as e:
         print(f"[MAIL ERREUR] {recipient} : {e}")
 
-# ── ADD ETUDIANT ───────────────────────────────────────────────
+# ── ADD ETUDIANT 
 def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
     session = Session()
     try:
@@ -231,7 +224,7 @@ def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
         session.close()
 
 
-# ── ADD SUPERVISEUR ────────────────────────────────────────────
+# ── ADD SUPERVISEUR
 def add_superviseur(id_responsable, nom, prenom, mail):
     session = Session()
     try:
@@ -264,7 +257,7 @@ def add_superviseur(id_responsable, nom, prenom, mail):
         session.close()
 
 
-# ── ADD RAPPORTEUR ─────────────────────────────────────────────
+# ── ADD RAPPORTEUR 
 def add_rapporteur(id_responsable, nom, prenom, mail):
     session = Session()
     try:
@@ -657,52 +650,6 @@ def update_status_rapport(id_stage, status):
         session.close()
 
 from bdsql import Session, Evaluation, Stage
-
-
-# =========================
-# ADD / UPDATE EVALUATION
-# =========================
-"""def add_or_update_evaluation(id_rapport, note_superviseur=None, note_rapporteur=None, note_responsable=None, commentaire_superviseur=None, commentaire_rapporteur=None, commentaire_responsable=None):
-    session = Session()
-    try:
-        evaluation = session.query(Evaluation).filter_by(id_rapport=id_rapport).first()
-
-        # si evaluation n'existe pas -> creation
-        if not evaluation:
-            evaluation = Evaluation(
-                id_rapport=id_rapport,
-                note_superviseur=note_superviseur,
-                note_rapporteur=note_rapporteur,
-                note_responsable=note_responsable,
-                commentaire_superviseur=commentaire_superviseur,
-                commentaire_rapporteur=commentaire_rapporteur,
-                commentaire_responsable=commentaire_responsable
-            )
-            session.add(evaluation)
-
-        # sinon update partiel
-        else:
-            if note_superviseur is not None:
-                evaluation.note_superviseur = note_superviseur
-            if note_rapporteur is not None:
-                evaluation.note_rapporteur = note_rapporteur
-            if note_responsable is not None:
-                evaluation.note_responsable = note_responsable
-            if commentaire_superviseur is not None:
-                evaluation.commentaire_superviseur = commentaire_superviseur
-            if commentaire_rapporteur is not None:
-                evaluation.commentaire_rapporteur = commentaire_rapporteur
-            if commentaire_responsable is not None:
-                evaluation.commentaire_responsable = commentaire_responsable
-
-        session.commit()
-        return {"success": True, "message": "Évaluation enregistrée"}
-    except Exception as e:
-        session.rollback()
-        return {"success": False, "message": str(e)}
-    finally:
-        session.close()"""
-
 
 def get_ine_by_rapport(id_rapport):
     session = Session()
