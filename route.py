@@ -128,8 +128,11 @@ def supprimer_rapporteur():
 @api_bp.route("/stages/ajouter", methods=["POST"])
 def ajouter_stage():
     data = request.json
-    return jsonify(add_stage(data["id_responsable"], data["titre"], data["entreprise"], data["ville"], data["description"], data["date_debut"], data["date_fin"], data["id_etudiant"], data["id_superviseur"], data["id_rapporteur"]))
-
+    valid = (add_stage(data["id_responsable"], data["titre"], data["entreprise"], data["ville"], data["description"], data["date_debut"], data["date_fin"], data["id_etudiant"], data["id_superviseur"], data["id_rapporteur"]))
+    if valid:
+        return jsonify({"success":"True","message":"Stage ajouter avec succès"})
+    else:
+        return jsonify({"success":"False","message":"Impossible d'jouter le stage ,reverifier vos informations."})
 
 @api_bp.route("/stages/liste/<int:id_responsable>", methods=["GET"])
 def liste_stages(id_responsable):
