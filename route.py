@@ -170,7 +170,7 @@ def ajouter_rapport():
             
             upload_result = cloudinary.uploader.upload(
                 file,
-                resource_type="auto",
+                resource_type="raw",
                 folder="rapports_stages",
                 public_id=public_id_name
             )

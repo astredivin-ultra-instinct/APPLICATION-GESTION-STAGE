@@ -217,7 +217,7 @@ def add_etudiant(id_responsable, nom, prenom, ine, mail, filiere, semestre):
         session.commit()
 
         envoyer_mail_async(
-            "Création de votre compte - Gestion des Stages",
+            "Création de votre compte(Etudiant) - Gestion des Stages",
             mail,
             f"""Camarade {prenom} {nom},\n\nCompte créé.\n\nINE: {ine}\nMot de passe: {temp}\nFilière: {filiere}\n\nhttps://application-gestion-stage-5.onrender.com"""
         )
