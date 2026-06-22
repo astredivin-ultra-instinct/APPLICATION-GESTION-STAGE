@@ -139,7 +139,6 @@ class Rapport(Base):
     status = Column(String(20),default="En attente")
 
     contenu = Column(Text,nullable=True)
-
     date_soumission = Column(DateTime,default=func.now())
 
     id_stage = Column(Integer,ForeignKey("stage.id_stage"),unique=True,nullable=True)
